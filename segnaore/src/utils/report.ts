@@ -64,11 +64,12 @@ export function calcPeriodSummary(
 
   for (const day of days) {
     const entry = entries.get(day)
-    const expected = getExpectedMinutes(day, settings)
-    totalExpectedMinutes += expected
     if (entry) {
       totalWorkedMinutes += entry.workedMinutes
       totalNightMinutes += entry.nightMinutes ?? 0
+      // Only count expected minutes for days actually worked
+      const expected = getExpectedMinutes(day, settings)
+      totalExpectedMinutes += expected
     }
   }
 
