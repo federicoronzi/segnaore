@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useRef } from 'react'
 
 interface TimeInputProps {
   value: string
@@ -7,60 +7,57 @@ interface TimeInputProps {
 }
 
 export default function TimeInput({ value, onChange, color = 'blue' }: TimeInputProps) {
-  const [hours, minutes] = value.split(':')
-  const [editingHours, setEditingHours] = useState<string | null>(null)
-  const [editingMinutes, setEditingMinutes] = useState<string | null>(null)
+  const hoursRef = useRef<HTMLInputElement>(null)
   const minuteRef = useRef<HTMLInputElement>(null)
+  const [hours, minutes] = value.split(':')
 
-  function handleHoursChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const raw = e.target.value.replace(/\D/g, '').slice(0, 2)
-    setEditingHours(raw)
+  function commitHours(raw: string) {
+    const num = Math.min(parseInt(raw || '0', 10), 23)
+    return num.toString().padStart(2, '0')
+  }
+
+  function commitMinutes(raw: string) {
+    const num = Math.min(parseInt(raw || '0', 10), 59)
+    return num.toString().padStart(2, '0')
+  }
+
+  function handleHoursInput(e: React.FormEvent<HTMLInputElement>) {
+    const input = e.currentTarget
+    const raw = input.value.replace(/\D/g, '').slice(0, 2)
+    input.value = raw
     if (raw.length === 2) {
-      const num = Math.min(parseInt(raw, 10), 23)
-      const padded = num.toString().padStart(2, '0')
-      setEditingHours(null)
-      onChange(`${padded}:${minutes}`)
+      const h = commitHours(raw)
+      onChange(`${h}:${minutes}`)
       minuteRef.current?.focus()
+      minuteRef.current?.select()
     }
   }
 
-  function handleHoursBlur() {
-    if (editingHours !== null) {
-      const num = Math.min(parseInt(editingHours || '0', 10), 23)
-      const padded = num.toString().padStart(2, '0')
-      setEditingHours(null)
-      onChange(`${padded}:${minutes}`)
-    }
+  function handleHoursBlur(e: React.FocusEvent<HTMLInputElement>) {
+    const raw = e.currentTarget.value.replace(/\D/g, '')
+    const h = commitHours(raw)
+    onChange(`${h}:${minutes}`)
   }
 
-  function handleMinutesChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const raw = e.target.value.replace(/\D/g, '').slice(0, 2)
-    setEditingMinutes(raw)
+  function handleMinutesInput(e: React.FormEvent<HTMLInputElement>) {
+    const input = e.currentTarget
+    const raw = input.value.replace(/\D/g, '').slice(0, 2)
+    input.value = raw
     if (raw.length === 2) {
-      const num = Math.min(parseInt(raw, 10), 59)
-      const padded = num.toString().padStart(2, '0')
-      setEditingMinutes(null)
-      onChange(`${hours}:${padded}`)
+      const m = commitMinutes(raw)
+      onChange(`${hours}:${m}`)
+      input.blur()
     }
   }
 
-  function handleMinutesBlur() {
-    if (editingMinutes !== null) {
-      const num = Math.min(parseInt(editingMinutes || '0', 10), 59)
-      const padded = num.toString().padStart(2, '0')
-      setEditingMinutes(null)
-      onChange(`${hours}:${padded}`)
-    }
+  function handleMinutesBlur(e: React.FocusEvent<HTMLInputElement>) {
+    const raw = e.currentTarget.value.replace(/\D/g, '')
+    const m = commitMinutes(raw)
+    onChange(`${hours}:${m}`)
   }
 
-  function handleHoursFocus(e: React.FocusEvent<HTMLInputElement>) {
-    setEditingHours('')
-    e.target.select()
-  }
-
-  function handleMinutesFocus(e: React.FocusEvent<HTMLInputElement>) {
-    setEditingMinutes('')
-    e.target.select()
+  function handleFocus(e: React.FocusEvent<HTMLInputElement>) {
+    e.currentTarget.value = ''
   }
 
   const borderColor = `border-${color}-500`
@@ -69,11 +66,13 @@ export default function TimeInput({ value, onChange, color = 'blue' }: TimeInput
   return (
     <div className="flex items-center justify-center gap-2">
       <input
+        ref={hoursRef}
         type="text"
         inputMode="numeric"
-        value={editingHours !== null ? editingHours : hours}
-        onChange={handleHoursChange}
-        onFocus={handleHoursFocus}
+        defaultValue={hours}
+        key={`h-${hours}`}
+        onInput={handleHoursInput}
+        onFocus={handleFocus}
         onBlur={handleHoursBlur}
         className={`w-20 h-20 text-center text-4xl font-bold rounded-xl border-2 bg-gray-50 ${borderColor} ${textColor} focus:outline-none focus:ring-2 focus:ring-${color}-300`}
         maxLength={2}
@@ -83,9 +82,10 @@ export default function TimeInput({ value, onChange, color = 'blue' }: TimeInput
         ref={minuteRef}
         type="text"
         inputMode="numeric"
-        value={editingMinutes !== null ? editingMinutes : minutes}
-        onChange={handleMinutesChange}
-        onFocus={handleMinutesFocus}
+        defaultValue={minutes}
+        key={`m-${minutes}`}
+        onInput={handleMinutesInput}
+        onFocus={handleFocus}
         onBlur={handleMinutesBlur}
         className={`w-20 h-20 text-center text-4xl font-bold rounded-xl border-2 bg-gray-50 ${borderColor} ${textColor} focus:outline-none focus:ring-2 focus:ring-${color}-300`}
         maxLength={2}
