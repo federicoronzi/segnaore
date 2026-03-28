@@ -89,6 +89,7 @@ export default function Report() {
   }
 
   const [saving, setSaving] = useState(false)
+  const [imageUrl, setImageUrl] = useState<string | null>(null)
 
   async function handleSaveImage() {
     if (!reportRef.current) return
@@ -100,12 +101,9 @@ export default function Report() {
         backgroundColor: '#ffffff',
         useCORS: true,
       })
-      const link = document.createElement('a')
-      link.download = `segnaore-report-${startStr}.png`
-      link.href = canvas.toDataURL('image/png')
-      link.click()
+      setImageUrl(canvas.toDataURL('image/png'))
     } catch {
-      alert('Tieni premuto sul report e scegli "Aggiungi a Foto" oppure fai uno screenshot.')
+      alert('Non riesco a generare l\'immagine. Prova a fare uno screenshot.')
     } finally {
       setSaving(false)
     }
@@ -117,6 +115,25 @@ export default function Report() {
     { type: 'year', label: 'Anno' },
     { type: 'custom', label: 'Custom' },
   ]
+
+  if (imageUrl) {
+    return (
+      <div className="py-4 text-center">
+        <p className="text-sm font-semibold text-gray-600 mb-2">Tieni premuto sull'immagine → "Salva immagine"</p>
+        <img
+          src={imageUrl}
+          alt="Report SegnaOre"
+          className="w-full rounded-xl shadow-lg"
+        />
+        <button
+          onClick={() => setImageUrl(null)}
+          className="mt-4 w-full py-3 bg-gray-200 text-gray-600 rounded-xl font-semibold"
+        >
+          ← Torna al report
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div className="py-4">
