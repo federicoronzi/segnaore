@@ -9,7 +9,7 @@ export default function OnCall() {
   const mondayStr = format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd')
   const weekLabel = format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'd MMM', { locale: it })
   const weekEndLabel = format(
-    new Date(new Date(mondayStr).getTime() + 4 * 86400000),
+    new Date(new Date(mondayStr).getTime() + 6 * 86400000),
     'd MMM yyyy',
     { locale: it },
   )
