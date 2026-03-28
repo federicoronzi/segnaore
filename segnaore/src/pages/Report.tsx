@@ -88,10 +88,27 @@ export default function Report() {
     printWindow.document.close()
   }
 
-  function handlePDF() {
-    // On iOS, the best way to get a PDF is through the print dialog
-    // which has a "Save as PDF" / share option built in
-    handlePrint()
+  const [saving, setSaving] = useState(false)
+
+  async function handleSaveImage() {
+    if (!reportRef.current) return
+    setSaving(true)
+    try {
+      const { default: html2canvas } = await import('html2canvas')
+      const canvas = await html2canvas(reportRef.current, {
+        scale: 2,
+        backgroundColor: '#ffffff',
+        useCORS: true,
+      })
+      const link = document.createElement('a')
+      link.download = `segnaore-report-${startStr}.png`
+      link.href = canvas.toDataURL('image/png')
+      link.click()
+    } catch {
+      alert('Tieni premuto sul report e scegli "Aggiungi a Foto" oppure fai uno screenshot.')
+    } finally {
+      setSaving(false)
+    }
   }
 
   const tabs: { type: PeriodType; label: string }[] = [
@@ -247,13 +264,14 @@ export default function Report() {
         <button onClick={handlePrint} className="flex-1 py-3 bg-blue-600 text-white rounded-xl font-semibold">
           🖨️ Stampa
         </button>
-        <button onClick={handlePDF} className="flex-1 py-3 bg-green-500 text-white rounded-xl font-semibold">
-          📥 Salva PDF
+        <button
+          onClick={handleSaveImage}
+          disabled={saving}
+          className="flex-1 py-3 bg-green-500 text-white rounded-xl font-semibold disabled:opacity-50"
+        >
+          {saving ? '⏳ Salvataggio...' : '📸 Salva su Foto'}
         </button>
       </div>
-      <p className="text-xs text-gray-400 text-center mt-2 print:hidden">
-        Per salvare in PDF: dalla finestra di stampa, tocca "Condividi" e poi "Salva su File"
-      </p>
     </div>
   )
 }
