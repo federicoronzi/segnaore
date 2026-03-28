@@ -61,7 +61,7 @@ export default function Report() {
       const dayOfWeek = new Date(day).getDay()
       const isReduced = settings.reducedDay === dayOfWeek
       const isWorkDay = settings.workDays.includes(dayOfWeek)
-      if (!isWorkDay && !entry) return ''
+      if (!isWorkDay && !entry && !absence) return ''
 
       const bgStyle = isReduced ? 'background:#fffbeb;' : absence ? 'background:#faf5ff;' : ''
       const dayLabel = formatDateIT(day)
@@ -273,7 +273,7 @@ export default function Report() {
                 const isReduced = settings.reducedDay === dayOfWeek
                 const isWorkDay = settings.workDays.includes(dayOfWeek)
 
-                if (!isWorkDay && !entry) return null
+                if (!isWorkDay && !entry && !absence) return null
 
                 return (
                   <tr

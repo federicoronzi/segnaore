@@ -239,7 +239,8 @@ export default function Calendar() {
           }
 
           return (
-            <div
+            <button
+              type="button"
               key={dateStr}
               onClick={() => inMonth && openDay(dateStr)}
               className={`p-1 rounded-lg text-center min-h-[52px] cursor-pointer active:scale-95 transition-transform ${
@@ -262,7 +263,7 @@ export default function Calendar() {
               {entry?.nightMinutes != null && entry.nightMinutes > 0 && (
                 <div className="text-xs">🌙</div>
               )}
-            </div>
+            </button>
           )
         })}
       </div>
