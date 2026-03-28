@@ -158,12 +158,10 @@ export default function Report() {
     if (!w) return
     // Add a "Fai screenshot per salvare" banner at the top
     const saveHtml = html.replace(
-      '<body',
-      `<body`
-    ).replace(
       '</body>',
       `<div style="text-align:center;padding:20px;margin-top:20px;border-top:1px solid #eee;">
         <p style="color:#9ca3af;font-size:13px;">Fai uno screenshot per salvare questa pagina</p>
+        <button onclick="window.close()" style="margin-top:12px;padding:10px 24px;background:#2563eb;color:white;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;">← Torna al report</button>
       </div></body>`
     )
     w.document.write(saveHtml)
