@@ -34,7 +34,7 @@ export default function Calendar() {
   const endStr = format(calEnd, 'yyyy-MM-dd')
 
   const { entriesMap } = useWorkEntries(startStr, endStr)
-  const { absences } = useAbsences(startStr, endStr)
+  const { absences, deleteAbsence } = useAbsences(startStr, endStr)
   const absenceMap = new Map(absences.map(a => [a.date, a]))
 
   const allDays = eachDayOfInterval({ start: calStart, end: calEnd })
@@ -177,16 +177,31 @@ export default function Calendar() {
             </div>
           </>
         ) : absence ? (
-          <div className="bg-white rounded-2xl shadow-sm p-6 text-center">
-            <div className="text-4xl mb-2">
-              {absence.type === 'ferie' && '🏖️'}
-              {absence.type === 'permesso' && '🕐'}
-              {absence.type === 'malattia' && '🤒'}
+          <>
+            <div className="bg-white rounded-2xl shadow-sm p-6 text-center">
+              <div className="text-4xl mb-2">
+                {absence.type === 'ferie' && '🏖️'}
+                {absence.type === 'permesso' && '🕐'}
+                {absence.type === 'malattia' && '🤒'}
+              </div>
+              <div className="text-lg font-semibold capitalize">{absence.type}</div>
+              {absence.hours && <div className="text-gray-400">{absence.hours}h</div>}
+              {absence.note && <div className="text-sm text-gray-500 mt-2 italic">{absence.note}</div>}
             </div>
-            <div className="text-lg font-semibold capitalize">{absence.type}</div>
-            {absence.hours && <div className="text-gray-400">{absence.hours}h</div>}
-            {absence.note && <div className="text-sm text-gray-500 mt-2 italic">{absence.note}</div>}
-          </div>
+            <div className="text-center mt-6">
+              <button
+                onClick={() => {
+                  if (window.confirm('Sei sicuro di voler cancellare questa assenza?')) {
+                    deleteAbsence(absence.id!)
+                    setSelectedDate(null)
+                  }
+                }}
+                className="text-red-400 text-xs hover:underline"
+              >
+                Cancella assenza
+              </button>
+            </div>
+          </>
         ) : (
           <div className="text-center">
             <p className="text-gray-300 mb-4">Nessun dato per questo giorno</p>
