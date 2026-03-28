@@ -152,34 +152,22 @@ export default function Report() {
     printWindow.document.close()
   }
 
-  const [saving, setSaving] = useState(false)
-  const [imageUrl, setImageUrl] = useState<string | null>(null)
-
-  async function handleSaveImage() {
-    setSaving(true)
-    try {
-      const html = buildReportHTML()
-      const container = document.createElement('div')
-      container.style.position = 'absolute'
-      container.style.left = '-9999px'
-      container.style.width = '600px'
-      container.style.background = 'white'
-      container.innerHTML = html.replace(/<!DOCTYPE.*?<body[^>]*>/s, '').replace(/<\/body>.*$/s, '')
-      document.body.appendChild(container)
-
-      const { default: html2canvas } = await import('html2canvas')
-      const canvas = await html2canvas(container, {
-        scale: 2,
-        backgroundColor: '#ffffff',
-        width: 600,
-      })
-      document.body.removeChild(container)
-      setImageUrl(canvas.toDataURL('image/png'))
-    } catch {
-      alert('Non riesco a generare l\'immagine. Prova a fare uno screenshot.')
-    } finally {
-      setSaving(false)
-    }
+  function handleSaveImage() {
+    const html = buildReportHTML()
+    const w = window.open('', '_blank')
+    if (!w) return
+    // Add a "Fai screenshot per salvare" banner at the top
+    const saveHtml = html.replace(
+      '<body',
+      `<body`
+    ).replace(
+      '</body>',
+      `<div style="text-align:center;padding:20px;margin-top:20px;border-top:1px solid #eee;">
+        <p style="color:#9ca3af;font-size:13px;">Fai uno screenshot per salvare questa pagina</p>
+      </div></body>`
+    )
+    w.document.write(saveHtml)
+    w.document.close()
   }
 
   const tabs: { type: PeriodType; label: string }[] = [
@@ -188,25 +176,6 @@ export default function Report() {
     { type: 'year', label: 'Anno' },
     { type: 'custom', label: 'Custom' },
   ]
-
-  if (imageUrl) {
-    return (
-      <div className="py-4 text-center">
-        <p className="text-sm font-semibold text-gray-600 mb-2">Tieni premuto sull'immagine → "Salva immagine"</p>
-        <img
-          src={imageUrl}
-          alt="Report SegnaOre"
-          className="w-full rounded-xl shadow-lg"
-        />
-        <button
-          onClick={() => setImageUrl(null)}
-          className="mt-4 w-full py-3 bg-gray-200 text-gray-600 rounded-xl font-semibold"
-        >
-          ← Torna al report
-        </button>
-      </div>
-    )
-  }
 
   return (
     <div className="py-4">
@@ -356,10 +325,9 @@ export default function Report() {
         </button>
         <button
           onClick={handleSaveImage}
-          disabled={saving}
-          className="flex-1 py-3 bg-green-500 text-white rounded-xl font-semibold disabled:opacity-50"
+          className="flex-1 py-3 bg-green-500 text-white rounded-xl font-semibold"
         >
-          {saving ? '⏳ Salvataggio...' : '📸 Salva su Foto'}
+          📸 Salva / Condividi
         </button>
       </div>
     </div>
