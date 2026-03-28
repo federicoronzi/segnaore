@@ -55,21 +55,56 @@ export default function Report() {
   }
 
   function handlePrint() {
-    window.print()
+    if (!reportRef.current) return
+    const printWindow = window.open('', '_blank')
+    if (!printWindow) {
+      // Fallback: try window.print() directly
+      window.print()
+      return
+    }
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html><head><title>SegnaOre Report</title>
+      <style>
+        body { font-family: -apple-system, system-ui, sans-serif; padding: 20px; font-size: 14px; }
+        table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+        th, td { padding: 8px; border: 1px solid #ddd; text-align: center; }
+        th { background: #f5f5f5; font-weight: 600; }
+        td:first-child { text-align: left; }
+        td:last-child { text-align: right; font-weight: 600; }
+        .summary { display: flex; flex-wrap: wrap; gap: 12px; margin: 16px 0; }
+        .box { flex: 1; min-width: 120px; padding: 12px; border-radius: 8px; text-align: center; border: 1px solid #ddd; }
+        .box .value { font-size: 20px; font-weight: 700; }
+        .box .label { font-size: 11px; color: #888; }
+        h1 { text-align: center; }
+        p.period { text-align: center; color: #666; text-transform: capitalize; }
+      </style></head><body>
+      <h1>SegnaOre — Report di ${settings.userName}</h1>
+      <p class="period">${periodLabel()}</p>
+      ${reportRef.current.innerHTML}
+      <script>window.onload = function() { window.print(); }</script>
+      </body></html>
+    `)
+    printWindow.document.close()
   }
 
   async function handlePDF() {
     if (!reportRef.current) return
-    const html2pdf = (await import('html2pdf.js')).default
-    html2pdf()
-      .set({
-        margin: 10,
-        filename: `segnaore-report-${startStr}.pdf`,
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      })
-      .from(reportRef.current)
-      .save()
+    try {
+      const html2pdf = (await import('html2pdf.js')).default
+      await html2pdf()
+        .set({
+          margin: 10,
+          filename: `segnaore-report-${startStr}.pdf`,
+          html2canvas: { scale: 2, useCORS: true },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        })
+        .from(reportRef.current)
+        .save()
+    } catch {
+      // Fallback: use print
+      handlePrint()
+    }
   }
 
   const tabs: { type: PeriodType; label: string }[] = [
