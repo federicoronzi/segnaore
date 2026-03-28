@@ -2,6 +2,7 @@ import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Layout from './components/Layout'
 import { useSettings } from './hooks/useSettings'
 import Setup from './pages/Setup'
+import DailyFlow from './pages/DailyFlow'
 
 function Placeholder({ name }: { name: string }) {
   return <div className="p-8 text-center text-gray-400">{name} — coming soon</div>
@@ -21,7 +22,7 @@ function AppRoutes() {
   return (
     <Layout>
       <Routes>
-        <Route path="/" element={<Placeholder name="Daily Flow" />} />
+        <Route path="/" element={<DailyFlow />} />
         <Route path="/calendar" element={<Placeholder name="Calendario" />} />
         <Route path="/report" element={<Placeholder name="Report" />} />
         <Route path="/oncall" element={<Placeholder name="Reperibilità" />} />
