@@ -261,31 +261,17 @@ export default function Report() {
 </body></html>`
   }
 
+  const [previewHTML, setPreviewHTML] = useState<string | null>(null)
+  const [previewMode, setPreviewMode] = useState<'print' | 'save'>('save')
+
   function handlePrint() {
-    const html = buildReportHTML()
-    const printWindow = window.open('', '_blank')
-    if (!printWindow) {
-      window.print()
-      return
-    }
-    printWindow.document.write(html.replace('</body>', '<script>window.onload=function(){window.print()}<\/script></body>'))
-    printWindow.document.close()
+    setPreviewHTML(buildReportHTML())
+    setPreviewMode('print')
   }
 
   function handleSaveImage() {
-    const html = buildReportHTML()
-    const w = window.open('', '_blank')
-    if (!w) return
-    // Add a "Fai screenshot per salvare" banner at the top
-    const saveHtml = html.replace(
-      '</body>',
-      `<div style="text-align:center;padding:20px;margin-top:20px;border-top:1px solid #eee;">
-        <p style="color:#9ca3af;font-size:13px;">Fai uno screenshot per salvare questa pagina</p>
-        <button onclick="window.close()" style="margin-top:12px;padding:10px 24px;background:#2563eb;color:white;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;">← Torna al report</button>
-      </div></body>`
-    )
-    w.document.write(saveHtml)
-    w.document.close()
+    setPreviewHTML(buildReportHTML())
+    setPreviewMode('save')
   }
 
   const tabs: { type: PeriodType; label: string }[] = [
@@ -294,6 +280,40 @@ export default function Report() {
     { type: 'year', label: 'Anno' },
     { type: 'custom', label: 'Custom' },
   ]
+
+  if (previewHTML) {
+    const bodyContent = previewHTML
+      .replace(/<!DOCTYPE.*?<body[^>]*>/s, '')
+      .replace(/<\/body>.*$/s, '')
+
+    return (
+      <div className="py-4">
+        <div
+          className="bg-white rounded-xl p-4 shadow-sm"
+          dangerouslySetInnerHTML={{ __html: bodyContent }}
+        />
+        <div className="flex gap-3 mt-4">
+          <button
+            onClick={() => setPreviewHTML(null)}
+            className="flex-1 py-3 bg-gray-200 text-gray-600 rounded-xl font-semibold"
+          >
+            ← Indietro
+          </button>
+          {previewMode === 'print' && (
+            <button
+              onClick={() => window.print()}
+              className="flex-1 py-3 bg-blue-600 text-white rounded-xl font-semibold"
+            >
+              🖨️ Stampa
+            </button>
+          )}
+        </div>
+        {previewMode === 'save' && (
+          <p className="text-xs text-gray-400 text-center mt-3">Fai uno screenshot per salvare</p>
+        )}
+      </div>
+    )
+  }
 
   return (
     <div className="py-4">
