@@ -7,10 +7,8 @@ import OnCall from './pages/OnCall'
 import Absences from './pages/Absences'
 import Report from './pages/Report'
 import Calendar from './pages/Calendar'
+import Settings from './pages/Settings'
 
-function Placeholder({ name }: { name: string }) {
-  return <div className="p-8 text-center text-gray-400">{name} — coming soon</div>
-}
 
 function AppRoutes() {
   const { settings, isLoading } = useSettings()
@@ -31,7 +29,7 @@ function AppRoutes() {
         <Route path="/report" element={<Report />} />
         <Route path="/oncall" element={<OnCall />} />
         <Route path="/absences" element={<Absences />} />
-        <Route path="/settings" element={<Placeholder name="Impostazioni" />} />
+        <Route path="/settings" element={<Settings />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Layout>
