@@ -6,6 +6,7 @@ import DailyFlow from './pages/DailyFlow'
 import OnCall from './pages/OnCall'
 import Absences from './pages/Absences'
 import Report from './pages/Report'
+import Calendar from './pages/Calendar'
 
 function Placeholder({ name }: { name: string }) {
   return <div className="p-8 text-center text-gray-400">{name} — coming soon</div>
@@ -26,7 +27,7 @@ function AppRoutes() {
     <Layout>
       <Routes>
         <Route path="/" element={<DailyFlow />} />
-        <Route path="/calendar" element={<Placeholder name="Calendario" />} />
+        <Route path="/calendar" element={<Calendar />} />
         <Route path="/report" element={<Report />} />
         <Route path="/oncall" element={<OnCall />} />
         <Route path="/absences" element={<Absences />} />
