@@ -21,7 +21,14 @@ export function useWorkEntry(date: string) {
     }
   }
 
-  return { entry: entry ?? null, isLoading: entry === undefined, saveEntry }
+  async function deleteEntry(date: string) {
+    const existing = await db.workEntries.where('date').equals(date).first()
+    if (existing) {
+      await db.workEntries.delete(existing.id!)
+    }
+  }
+
+  return { entry: entry ?? null, isLoading: entry === undefined, saveEntry, deleteEntry }
 }
 
 export function useWorkEntries(startDate: string, endDate: string) {

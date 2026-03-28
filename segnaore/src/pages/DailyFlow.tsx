@@ -10,7 +10,7 @@ const today = format(new Date(), 'yyyy-MM-dd')
 const todayLabel = format(new Date(), 'EEEE d MMMM yyyy', { locale: it })
 
 export default function DailyFlow() {
-  const { entry, saveEntry } = useWorkEntry(today)
+  const { entry, saveEntry, deleteEntry } = useWorkEntry(today)
   const [step, setStep] = useState(1)
   const [startTime, setStartTime] = useState('08:00')
   const [endTime, setEndTime] = useState('17:00')
@@ -45,6 +45,18 @@ export default function DailyFlow() {
             </button>
           </div>
         )}
+        <div className="text-center mt-6">
+          <button
+            onClick={() => {
+              if (window.confirm('Sei sicuro di voler cancellare la giornata?')) {
+                deleteEntry(today)
+              }
+            }}
+            className="text-red-400 text-xs hover:underline"
+          >
+            Cancella giornata
+          </button>
+        </div>
       </div>
     )
   }
