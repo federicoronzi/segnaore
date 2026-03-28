@@ -62,14 +62,27 @@ export function calcPeriodSummary(
   let totalExpectedMinutes = 0
   let totalNightMinutes = 0
 
+  let overtimeMinutes = 0
+
   for (const day of days) {
     const entry = entries.get(day)
     if (entry) {
       totalWorkedMinutes += entry.workedMinutes
       totalNightMinutes += entry.nightMinutes ?? 0
-      // Only count expected minutes for days actually worked
+
       const expected = getExpectedMinutes(day, settings)
       totalExpectedMinutes += expected
+
+      if (expected === 0) {
+        // Non-work day (weekend etc): all hours are overtime
+        overtimeMinutes += entry.workedMinutes
+      } else if (entry.workedMinutes > expected) {
+        // Work day: hours beyond expected are overtime
+        overtimeMinutes += entry.workedMinutes - expected
+      }
+
+      // Night hours are always overtime
+      overtimeMinutes += entry.nightMinutes ?? 0
     }
   }
 
@@ -85,7 +98,7 @@ export function calcPeriodSummary(
   return {
     totalWorkedMinutes,
     totalExpectedMinutes,
-    overtimeMinutes: Math.max(0, totalWorkedMinutes - totalExpectedMinutes),
+    overtimeMinutes,
     totalNightMinutes,
     ferieCount,
     permessoHours,
