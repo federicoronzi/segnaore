@@ -54,37 +54,101 @@ export default function Report() {
     return `${format(range.start, 'd MMM yyyy', { locale: it })} — ${format(range.end, 'd MMM yyyy', { locale: it })}`
   }
 
+  function buildReportHTML(): string {
+    const rows = days.map(day => {
+      const entry = entriesMap.get(day)
+      const absence = absences.find(a => a.date === day)
+      const dayOfWeek = new Date(day).getDay()
+      const isReduced = settings.reducedDay === dayOfWeek
+      const isWorkDay = settings.workDays.includes(dayOfWeek)
+      if (!isWorkDay && !entry) return ''
+
+      const bgStyle = isReduced ? 'background:#fffbeb;' : absence ? 'background:#faf5ff;' : ''
+      const dayLabel = formatDateIT(day)
+
+      if (absence) {
+        const absLabel = absence.type === 'ferie' ? '🏖️ Ferie'
+          : absence.type === 'permesso' ? `🕐 Permesso (${absence.hours}h)`
+          : '🤒 Malattia'
+        return `<tr style="${bgStyle}">
+          <td style="text-align:left;padding:8px 12px;font-weight:600;text-transform:capitalize;">${dayLabel}</td>
+          <td colspan="3" style="text-align:center;color:#a855f7;font-size:13px;">${absLabel}</td>
+          <td style="text-align:right;padding:8px 12px;">—</td>
+        </tr>`
+      }
+      if (entry) {
+        return `<tr style="${bgStyle}">
+          <td style="text-align:left;padding:8px 12px;font-weight:600;text-transform:capitalize;">${dayLabel}</td>
+          <td style="text-align:center;padding:8px;">${entry.startTime}</td>
+          <td style="text-align:center;padding:8px;">${entry.endTime}</td>
+          <td style="text-align:center;padding:8px;">${entry.breakMinutes}m</td>
+          <td style="text-align:right;padding:8px 12px;font-weight:600;color:#2563eb;">${formatMinutes(entry.workedMinutes)}</td>
+        </tr>`
+      }
+      return `<tr style="${bgStyle}">
+        <td style="text-align:left;padding:8px 12px;font-weight:600;text-transform:capitalize;">${dayLabel}</td>
+        <td colspan="3" style="text-align:center;color:#d1d5db;font-size:13px;">—</td>
+        <td style="text-align:right;padding:8px 12px;color:#d1d5db;">—</td>
+      </tr>`
+    }).join('')
+
+    const boxes: string[] = []
+    boxes.push(`<div style="flex:1;min-width:140px;padding:14px;border-radius:12px;text-align:center;background:#eff6ff;">
+      <div style="font-size:22px;font-weight:700;color:#2563eb;">${formatMinutes(summary.totalWorkedMinutes)}</div>
+      <div style="font-size:12px;color:#9ca3af;">ore lavorate</div></div>`)
+    boxes.push(`<div style="flex:1;min-width:140px;padding:14px;border-radius:12px;text-align:center;background:#f0fdf4;">
+      <div style="font-size:22px;font-weight:700;color:#16a34a;">${summary.overtimeMinutes > 0 ? '+' : ''}${formatMinutes(summary.overtimeMinutes)}</div>
+      <div style="font-size:12px;color:#9ca3af;">straordinario</div></div>`)
+    if (summary.totalNightMinutes > 0)
+      boxes.push(`<div style="flex:1;min-width:140px;padding:14px;border-radius:12px;text-align:center;background:#eef2ff;">
+        <div style="font-size:22px;font-weight:700;color:#4f46e5;">${formatMinutes(summary.totalNightMinutes)}</div>
+        <div style="font-size:12px;color:#9ca3af;">ore notturne</div></div>`)
+    if (summary.emergencyCount > 0)
+      boxes.push(`<div style="flex:1;min-width:140px;padding:14px;border-radius:12px;text-align:center;background:#fff7ed;">
+        <div style="font-size:22px;font-weight:700;color:#f97316;">${summary.emergencyCount}</div>
+        <div style="font-size:12px;color:#9ca3af;">emergenze</div></div>`)
+    if (summary.ferieCount > 0)
+      boxes.push(`<div style="flex:1;min-width:140px;padding:14px;border-radius:12px;text-align:center;background:#eff6ff;">
+        <div style="font-size:22px;font-weight:700;color:#3b82f6;">${summary.ferieCount}</div>
+        <div style="font-size:12px;color:#9ca3af;">giorni ferie</div></div>`)
+    if (summary.permessoHours > 0)
+      boxes.push(`<div style="flex:1;min-width:140px;padding:14px;border-radius:12px;text-align:center;background:#faf5ff;">
+        <div style="font-size:22px;font-weight:700;color:#a855f7;">${summary.permessoHours}h</div>
+        <div style="font-size:12px;color:#9ca3af;">ore permesso</div></div>`)
+    if (summary.malattiaCount > 0)
+      boxes.push(`<div style="flex:1;min-width:140px;padding:14px;border-radius:12px;text-align:center;background:#f3f4f6;">
+        <div style="font-size:22px;font-weight:700;color:#6b7280;">${summary.malattiaCount}</div>
+        <div style="font-size:12px;color:#9ca3af;">giorni malattia</div></div>`)
+
+    return `<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Report SegnaOre</title></head>
+<body style="font-family:-apple-system,system-ui,'Segoe UI',sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#1f2937;">
+  <h1 style="text-align:center;font-size:22px;margin-bottom:4px;">SegnaOre — Report di ${settings.userName}</h1>
+  <p style="text-align:center;color:#6b7280;text-transform:capitalize;margin-top:0;">${periodLabel()}</p>
+  <table style="width:100%;border-collapse:collapse;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;margin:16px 0;">
+    <thead>
+      <tr style="background:#f9fafb;">
+        <th style="text-align:left;padding:10px 12px;font-size:13px;">Giorno</th>
+        <th style="padding:10px 8px;font-size:13px;">Inizio</th>
+        <th style="padding:10px 8px;font-size:13px;">Fine</th>
+        <th style="padding:10px 8px;font-size:13px;">Pausa</th>
+        <th style="text-align:right;padding:10px 12px;font-size:13px;">Ore</th>
+      </tr>
+    </thead>
+    <tbody>${rows}</tbody>
+  </table>
+  <div style="display:flex;flex-wrap:wrap;gap:10px;margin:16px 0;">${boxes.join('')}</div>
+</body></html>`
+  }
+
   function handlePrint() {
-    if (!reportRef.current) return
+    const html = buildReportHTML()
     const printWindow = window.open('', '_blank')
     if (!printWindow) {
-      // Fallback: try window.print() directly
       window.print()
       return
     }
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html><head><title>SegnaOre Report</title>
-      <style>
-        body { font-family: -apple-system, system-ui, sans-serif; padding: 20px; font-size: 14px; }
-        table { width: 100%; border-collapse: collapse; margin: 16px 0; }
-        th, td { padding: 8px; border: 1px solid #ddd; text-align: center; }
-        th { background: #f5f5f5; font-weight: 600; }
-        td:first-child { text-align: left; }
-        td:last-child { text-align: right; font-weight: 600; }
-        .summary { display: flex; flex-wrap: wrap; gap: 12px; margin: 16px 0; }
-        .box { flex: 1; min-width: 120px; padding: 12px; border-radius: 8px; text-align: center; border: 1px solid #ddd; }
-        .box .value { font-size: 20px; font-weight: 700; }
-        .box .label { font-size: 11px; color: #888; }
-        h1 { text-align: center; }
-        p.period { text-align: center; color: #666; text-transform: capitalize; }
-      </style></head><body>
-      <h1>SegnaOre — Report di ${settings.userName}</h1>
-      <p class="period">${periodLabel()}</p>
-      ${reportRef.current.innerHTML}
-      <script>window.onload = function() { window.print(); }</script>
-      </body></html>
-    `)
+    printWindow.document.write(html.replace('</body>', '<script>window.onload=function(){window.print()}<\/script></body>'))
     printWindow.document.close()
   }
 
@@ -92,15 +156,24 @@ export default function Report() {
   const [imageUrl, setImageUrl] = useState<string | null>(null)
 
   async function handleSaveImage() {
-    if (!reportRef.current) return
     setSaving(true)
     try {
+      const html = buildReportHTML()
+      const container = document.createElement('div')
+      container.style.position = 'absolute'
+      container.style.left = '-9999px'
+      container.style.width = '600px'
+      container.style.background = 'white'
+      container.innerHTML = html.replace(/<!DOCTYPE.*?<body[^>]*>/s, '').replace(/<\/body>.*$/s, '')
+      document.body.appendChild(container)
+
       const { default: html2canvas } = await import('html2canvas')
-      const canvas = await html2canvas(reportRef.current, {
+      const canvas = await html2canvas(container, {
         scale: 2,
         backgroundColor: '#ffffff',
-        useCORS: true,
+        width: 600,
       })
+      document.body.removeChild(container)
       setImageUrl(canvas.toDataURL('image/png'))
     } catch {
       alert('Non riesco a generare l\'immagine. Prova a fare uno screenshot.')
