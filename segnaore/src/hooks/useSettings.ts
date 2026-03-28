@@ -13,7 +13,10 @@ const DEFAULT_SETTINGS: Settings = {
 }
 
 export function useSettings() {
-  const settings = useLiveQuery(() => db.settings.get('main'))
+  const result = useLiveQuery(async () => {
+    const found = await db.settings.get('main')
+    return found ?? null
+  })
 
   async function saveSettings(updates: Partial<Settings>) {
     const current = (await db.settings.get('main')) ?? DEFAULT_SETTINGS
@@ -21,8 +24,8 @@ export function useSettings() {
   }
 
   return {
-    settings: settings ?? DEFAULT_SETTINGS,
-    isLoading: settings === undefined,
+    settings: result ?? DEFAULT_SETTINGS,
+    isLoading: result === undefined,
     saveSettings,
   }
 }
