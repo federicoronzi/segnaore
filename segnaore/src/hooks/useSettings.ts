@@ -5,6 +5,7 @@ import type { Settings } from '../types'
 const DEFAULT_SETTINGS: Settings = {
   id: 'main',
   userName: '',
+  companyName: '',
   standardHours: 8,
   reducedDay: null,
   reducedHours: null,

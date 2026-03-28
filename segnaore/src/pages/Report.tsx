@@ -135,7 +135,8 @@ export default function Report() {
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Report SegnaOre</title></head>
 <body style="font-family:-apple-system,system-ui,'Segoe UI',sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#1f2937;">
   <h1 style="text-align:center;font-size:22px;margin-bottom:4px;">SegnaOre — Report di ${settings.userName}</h1>
-  <p style="text-align:center;color:#6b7280;text-transform:capitalize;margin-top:0;">${periodLabel()}</p>
+  ${settings.companyName ? `<p style="text-align:center;color:#4b5563;font-weight:600;margin:0;">${settings.companyName}</p>` : ''}
+  <p style="text-align:center;color:#6b7280;text-transform:capitalize;margin-top:4px;">${periodLabel()}</p>
   <table style="width:100%;border-collapse:collapse;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;margin:16px 0;">
     <thead>
       <tr style="background:#f9fafb;">
@@ -183,7 +184,8 @@ export default function Report() {
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Report SegnaOre</title></head>
 <body style="font-family:-apple-system,system-ui,'Segoe UI',sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#1f2937;">
   <h1 style="text-align:center;font-size:22px;margin-bottom:4px;">SegnaOre — Report di ${settings.userName}</h1>
-  <p style="text-align:center;color:#6b7280;text-transform:capitalize;margin-top:0;">${periodLabel()}</p>
+  ${settings.companyName ? `<p style="text-align:center;color:#4b5563;font-weight:600;margin:0;">${settings.companyName}</p>` : ''}
+  <p style="text-align:center;color:#6b7280;text-transform:capitalize;margin-top:4px;">${periodLabel()}</p>
   <table style="width:100%;border-collapse:collapse;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;margin:16px 0;">
     <thead>
       <tr style="background:#f9fafb;">
@@ -241,7 +243,8 @@ export default function Report() {
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Report SegnaOre</title></head>
 <body style="font-family:-apple-system,system-ui,'Segoe UI',sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#1f2937;">
   <h1 style="text-align:center;font-size:22px;margin-bottom:4px;">SegnaOre — Report di ${settings.userName}</h1>
-  <p style="text-align:center;color:#6b7280;text-transform:capitalize;margin-top:0;">${periodLabel()}</p>
+  ${settings.companyName ? `<p style="text-align:center;color:#4b5563;font-weight:600;margin:0;">${settings.companyName}</p>` : ''}
+  <p style="text-align:center;color:#6b7280;text-transform:capitalize;margin-top:4px;">${periodLabel()}</p>
   <table style="width:100%;border-collapse:collapse;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;margin:16px 0;">
     <thead>
       <tr style="background:#f9fafb;">
@@ -335,6 +338,7 @@ export default function Report() {
       <div ref={reportRef}>
         <div className="hidden print:block text-center mb-4">
           <h1 className="text-xl font-bold">SegnaOre — Report di {settings.userName}</h1>
+          {settings.companyName && <p className="font-semibold text-gray-600">{settings.companyName}</p>}
           <p className="capitalize">{periodLabel()}</p>
         </div>
 

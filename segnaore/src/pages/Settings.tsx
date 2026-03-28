@@ -7,6 +7,7 @@ const DAY_LABELS = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab']
 export default function Settings() {
   const { settings, saveSettings } = useSettings()
   const [userName, setUserName] = useState(settings.userName)
+  const [companyName, setCompanyName] = useState(settings.companyName)
   const [standardHours, setStandardHours] = useState(settings.standardHours)
   const [hasReducedDay, setHasReducedDay] = useState(settings.reducedDay != null)
   const [reducedDay, setReducedDay] = useState(settings.reducedDay ?? 5)
@@ -16,6 +17,7 @@ export default function Settings() {
 
   useEffect(() => {
     setUserName(settings.userName)
+    setCompanyName(settings.companyName)
     setStandardHours(settings.standardHours)
     setHasReducedDay(settings.reducedDay != null)
     setReducedDay(settings.reducedDay ?? 5)
@@ -32,6 +34,7 @@ export default function Settings() {
   async function handleSave() {
     await saveSettings({
       userName,
+      companyName,
       standardHours,
       reducedDay: hasReducedDay ? reducedDay : null,
       reducedHours: hasReducedDay ? reducedHours : null,
@@ -95,6 +98,11 @@ export default function Settings() {
       <div className="mb-4">
         <label className="text-sm font-semibold text-gray-600 block mb-1">Nome</label>
         <input type="text" value={userName} onChange={e => setUserName(e.target.value)} className="w-full p-2 border rounded-lg" />
+      </div>
+
+      <div className="mb-4">
+        <label className="text-sm font-semibold text-gray-600 block mb-1">Azienda</label>
+        <input type="text" value={companyName} onChange={e => setCompanyName(e.target.value)} placeholder="Nome azienda (facoltativo)" className="w-full p-2 border rounded-lg" />
       </div>
 
       <div className="mb-4">

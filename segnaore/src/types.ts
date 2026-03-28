@@ -1,6 +1,7 @@
 export interface Settings {
   id: string
   userName: string
+  companyName: string
   standardHours: number
   reducedDay: number | null   // 0=Sun, 1=Mon...5=Fri, 6=Sat. null = no reduced day
   reducedHours: number | null

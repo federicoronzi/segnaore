@@ -9,6 +9,7 @@ export default function Setup() {
   const navigate = useNavigate()
   const [step, setStep] = useState(1)
   const [userName, setUserName] = useState('')
+  const [companyName, setCompanyName] = useState('')
   const [standardHours, setStandardHours] = useState(8)
   const [hasReducedDay, setHasReducedDay] = useState(false)
   const [reducedDay, setReducedDay] = useState(5)
@@ -24,6 +25,7 @@ export default function Setup() {
   async function finish() {
     await saveSettings({
       userName,
+      companyName,
       standardHours,
       reducedDay: hasReducedDay ? reducedDay : null,
       reducedHours: hasReducedDay ? reducedHours : null,
@@ -54,8 +56,16 @@ export default function Setup() {
               value={userName}
               onChange={e => setUserName(e.target.value)}
               placeholder="Il tuo nome"
-              className="w-full text-center text-xl p-3 border-2 border-blue-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-300"
+              className="w-full text-center text-xl p-3 border-2 border-blue-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-300 mb-4"
               autoFocus
+            />
+            <h2 className="text-xl font-bold mb-4 mt-6">Per che azienda lavori?</h2>
+            <input
+              type="text"
+              value={companyName}
+              onChange={e => setCompanyName(e.target.value)}
+              placeholder="Nome azienda (facoltativo)"
+              className="w-full text-center text-lg p-3 border-2 border-blue-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-300"
               onKeyDown={e => e.key === 'Enter' && userName.trim() && setStep(2)}
             />
             <button
