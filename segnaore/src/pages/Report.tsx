@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useRef, useState } from 'react'
 import { format, addWeeks, addMonths, addYears } from 'date-fns'
 import { it } from 'date-fns/locale'
 import { useSettings } from '../hooks/useSettings'
@@ -88,23 +88,10 @@ export default function Report() {
     printWindow.document.close()
   }
 
-  async function handlePDF() {
-    if (!reportRef.current) return
-    try {
-      const html2pdf = (await import('html2pdf.js')).default
-      await html2pdf()
-        .set({
-          margin: 10,
-          filename: `segnaore-report-${startStr}.pdf`,
-          html2canvas: { scale: 2, useCORS: true },
-          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        })
-        .from(reportRef.current)
-        .save()
-    } catch {
-      // Fallback: use print
-      handlePrint()
-    }
+  function handlePDF() {
+    // On iOS, the best way to get a PDF is through the print dialog
+    // which has a "Save as PDF" / share option built in
+    handlePrint()
   }
 
   const tabs: { type: PeriodType; label: string }[] = [
@@ -261,9 +248,12 @@ export default function Report() {
           🖨️ Stampa
         </button>
         <button onClick={handlePDF} className="flex-1 py-3 bg-green-500 text-white rounded-xl font-semibold">
-          📥 Scarica PDF
+          📥 Salva PDF
         </button>
       </div>
+      <p className="text-xs text-gray-400 text-center mt-2 print:hidden">
+        Per salvare in PDF: dalla finestra di stampa, tocca "Condividi" e poi "Salva su File"
+      </p>
     </div>
   )
 }
