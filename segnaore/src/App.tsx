@@ -3,6 +3,7 @@ import Layout from './components/Layout'
 import { useSettings } from './hooks/useSettings'
 import Setup from './pages/Setup'
 import DailyFlow from './pages/DailyFlow'
+import OnCall from './pages/OnCall'
 
 function Placeholder({ name }: { name: string }) {
   return <div className="p-8 text-center text-gray-400">{name} — coming soon</div>
@@ -25,7 +26,7 @@ function AppRoutes() {
         <Route path="/" element={<DailyFlow />} />
         <Route path="/calendar" element={<Placeholder name="Calendario" />} />
         <Route path="/report" element={<Placeholder name="Report" />} />
-        <Route path="/oncall" element={<Placeholder name="Reperibilità" />} />
+        <Route path="/oncall" element={<OnCall />} />
         <Route path="/absences" element={<Placeholder name="Permessi/Ferie" />} />
         <Route path="/settings" element={<Placeholder name="Impostazioni" />} />
         <Route path="*" element={<Navigate to="/" />} />
