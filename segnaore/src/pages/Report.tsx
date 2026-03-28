@@ -9,6 +9,7 @@ import {
   getPeriodRange,
   getDaysInRange,
   calcPeriodSummary,
+  getExpectedMinutes,
   formatDateIT,
   type PeriodType,
 } from '../utils/report'
@@ -54,7 +55,151 @@ export default function Report() {
     return `${format(range.start, 'd MMM yyyy', { locale: it })} — ${format(range.end, 'd MMM yyyy', { locale: it })}`
   }
 
+  function buildSummaryBoxes(): string {
+    const boxes: string[] = []
+    boxes.push(`<div style="flex:1;min-width:140px;padding:14px;border-radius:12px;text-align:center;background:#eff6ff;">
+      <div style="font-size:22px;font-weight:700;color:#2563eb;">${formatMinutes(summary.totalWorkedMinutes)}</div>
+      <div style="font-size:12px;color:#9ca3af;">ore lavorate</div></div>`)
+    boxes.push(`<div style="flex:1;min-width:140px;padding:14px;border-radius:12px;text-align:center;background:#f0fdf4;">
+      <div style="font-size:22px;font-weight:700;color:#16a34a;">${summary.overtimeMinutes > 0 ? '+' : ''}${formatMinutes(summary.overtimeMinutes)}</div>
+      <div style="font-size:12px;color:#9ca3af;">straordinario</div></div>`)
+    if (summary.totalNightMinutes > 0)
+      boxes.push(`<div style="flex:1;min-width:140px;padding:14px;border-radius:12px;text-align:center;background:#eef2ff;">
+        <div style="font-size:22px;font-weight:700;color:#4f46e5;">${formatMinutes(summary.totalNightMinutes)}</div>
+        <div style="font-size:12px;color:#9ca3af;">ore notturne</div></div>`)
+    if (summary.emergencyCount > 0)
+      boxes.push(`<div style="flex:1;min-width:140px;padding:14px;border-radius:12px;text-align:center;background:#fff7ed;">
+        <div style="font-size:22px;font-weight:700;color:#f97316;">${summary.emergencyCount}</div>
+        <div style="font-size:12px;color:#9ca3af;">emergenze</div></div>`)
+    if (summary.ferieCount > 0)
+      boxes.push(`<div style="flex:1;min-width:140px;padding:14px;border-radius:12px;text-align:center;background:#eff6ff;">
+        <div style="font-size:22px;font-weight:700;color:#3b82f6;">${summary.ferieCount}</div>
+        <div style="font-size:12px;color:#9ca3af;">giorni ferie</div></div>`)
+    if (summary.permessoHours > 0)
+      boxes.push(`<div style="flex:1;min-width:140px;padding:14px;border-radius:12px;text-align:center;background:#faf5ff;">
+        <div style="font-size:22px;font-weight:700;color:#a855f7;">${summary.permessoHours}h</div>
+        <div style="font-size:12px;color:#9ca3af;">ore permesso</div></div>`)
+    if (summary.malattiaCount > 0)
+      boxes.push(`<div style="flex:1;min-width:140px;padding:14px;border-radius:12px;text-align:center;background:#f3f4f6;">
+        <div style="font-size:22px;font-weight:700;color:#6b7280;">${summary.malattiaCount}</div>
+        <div style="font-size:12px;color:#9ca3af;">giorni malattia</div></div>`)
+    return boxes.join('')
+  }
+
   function buildReportHTML(): string {
+    const isCompact = periodType === 'month' || periodType === 'year'
+
+    if (isCompact) {
+      // Compact: group by week for month, by month for year
+      let tableContent = ''
+
+      if (periodType === 'month') {
+        // Group days into weeks
+        const weeks: string[][] = []
+        let currentWeek: string[] = []
+        for (const day of days) {
+          currentWeek.push(day)
+          if (new Date(day).getDay() === 0) { // Sunday = end of week
+            weeks.push(currentWeek)
+            currentWeek = []
+          }
+        }
+        if (currentWeek.length > 0) weeks.push(currentWeek)
+
+        for (const week of weeks) {
+          let weekWorked = 0
+          let weekExpected = 0
+          let weekDaysWorked = 0
+          for (const day of week) {
+            const entry = entriesMap.get(day)
+            if (entry) {
+              weekWorked += entry.workedMinutes
+              weekDaysWorked++
+              weekExpected += getExpectedMinutes(day, settings)
+            }
+          }
+          const weekStart = formatDateIT(week[0])
+          const weekEnd = formatDateIT(week[week.length - 1])
+          const overtime = Math.max(0, weekWorked - weekExpected)
+          const overtimeStr = overtime > 0 ? `<span style="color:#16a34a;">+${formatMinutes(overtime)}</span>` : ''
+
+          tableContent += `<tr style="border-top:1px solid #e5e7eb;">
+            <td style="text-align:left;padding:10px 12px;font-weight:600;text-transform:capitalize;">${weekStart} — ${weekEnd}</td>
+            <td style="text-align:center;padding:10px 8px;">${weekDaysWorked}gg</td>
+            <td style="text-align:center;padding:10px 8px;font-weight:600;color:#2563eb;">${formatMinutes(weekWorked)}</td>
+            <td style="text-align:right;padding:10px 12px;">${overtimeStr}</td>
+          </tr>`
+        }
+
+        return `<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Report SegnaOre</title></head>
+<body style="font-family:-apple-system,system-ui,'Segoe UI',sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#1f2937;">
+  <h1 style="text-align:center;font-size:22px;margin-bottom:4px;">SegnaOre — Report di ${settings.userName}</h1>
+  <p style="text-align:center;color:#6b7280;text-transform:capitalize;margin-top:0;">${periodLabel()}</p>
+  <table style="width:100%;border-collapse:collapse;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;margin:16px 0;">
+    <thead>
+      <tr style="background:#f9fafb;">
+        <th style="text-align:left;padding:10px 12px;font-size:13px;">Settimana</th>
+        <th style="padding:10px 8px;font-size:13px;">Giorni</th>
+        <th style="padding:10px 8px;font-size:13px;">Ore</th>
+        <th style="text-align:right;padding:10px 12px;font-size:13px;">Straord.</th>
+      </tr>
+    </thead>
+    <tbody>${tableContent}</tbody>
+  </table>
+  <div style="display:flex;flex-wrap:wrap;gap:10px;margin:16px 0;">${buildSummaryBoxes()}</div>
+</body></html>`
+      }
+
+      // Year: group by month
+      const months = new Map<string, { worked: number; expected: number; daysWorked: number }>()
+      for (const day of days) {
+        const monthKey = day.slice(0, 7) // YYYY-MM
+        const entry = entriesMap.get(day)
+        if (!months.has(monthKey)) months.set(monthKey, { worked: 0, expected: 0, daysWorked: 0 })
+        const m = months.get(monthKey)!
+        if (entry) {
+          m.worked += entry.workedMinutes
+          m.daysWorked++
+          m.expected += getExpectedMinutes(day, settings)
+        }
+      }
+
+      for (const [monthKey, data] of months) {
+        const monthDate = new Date(monthKey + '-01')
+        const monthLabel = format(monthDate, 'MMMM yyyy', { locale: it })
+        const overtime = Math.max(0, data.worked - data.expected)
+        const overtimeStr = overtime > 0 ? `<span style="color:#16a34a;">+${formatMinutes(overtime)}</span>` : ''
+
+        tableContent += `<tr style="border-top:1px solid #e5e7eb;">
+          <td style="text-align:left;padding:10px 12px;font-weight:600;text-transform:capitalize;">${monthLabel}</td>
+          <td style="text-align:center;padding:10px 8px;">${data.daysWorked}gg</td>
+          <td style="text-align:center;padding:10px 8px;font-weight:600;color:#2563eb;">${formatMinutes(data.worked)}</td>
+          <td style="text-align:right;padding:10px 12px;">${overtimeStr}</td>
+        </tr>`
+      }
+
+      return `<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Report SegnaOre</title></head>
+<body style="font-family:-apple-system,system-ui,'Segoe UI',sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#1f2937;">
+  <h1 style="text-align:center;font-size:22px;margin-bottom:4px;">SegnaOre — Report di ${settings.userName}</h1>
+  <p style="text-align:center;color:#6b7280;text-transform:capitalize;margin-top:0;">${periodLabel()}</p>
+  <table style="width:100%;border-collapse:collapse;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;margin:16px 0;">
+    <thead>
+      <tr style="background:#f9fafb;">
+        <th style="text-align:left;padding:10px 12px;font-size:13px;">Mese</th>
+        <th style="padding:10px 8px;font-size:13px;">Giorni</th>
+        <th style="padding:10px 8px;font-size:13px;">Ore</th>
+        <th style="text-align:right;padding:10px 12px;font-size:13px;">Straord.</th>
+      </tr>
+    </thead>
+    <tbody>${tableContent}</tbody>
+  </table>
+  <div style="display:flex;flex-wrap:wrap;gap:10px;margin:16px 0;">${buildSummaryBoxes()}</div>
+</body></html>`
+    }
+
+    // Weekly / custom: detailed day-by-day
     const rows = days.map(day => {
       const entry = entriesMap.get(day)
       const absence = absences.find(a => a.date === day)
@@ -92,34 +237,6 @@ export default function Report() {
       </tr>`
     }).join('')
 
-    const boxes: string[] = []
-    boxes.push(`<div style="flex:1;min-width:140px;padding:14px;border-radius:12px;text-align:center;background:#eff6ff;">
-      <div style="font-size:22px;font-weight:700;color:#2563eb;">${formatMinutes(summary.totalWorkedMinutes)}</div>
-      <div style="font-size:12px;color:#9ca3af;">ore lavorate</div></div>`)
-    boxes.push(`<div style="flex:1;min-width:140px;padding:14px;border-radius:12px;text-align:center;background:#f0fdf4;">
-      <div style="font-size:22px;font-weight:700;color:#16a34a;">${summary.overtimeMinutes > 0 ? '+' : ''}${formatMinutes(summary.overtimeMinutes)}</div>
-      <div style="font-size:12px;color:#9ca3af;">straordinario</div></div>`)
-    if (summary.totalNightMinutes > 0)
-      boxes.push(`<div style="flex:1;min-width:140px;padding:14px;border-radius:12px;text-align:center;background:#eef2ff;">
-        <div style="font-size:22px;font-weight:700;color:#4f46e5;">${formatMinutes(summary.totalNightMinutes)}</div>
-        <div style="font-size:12px;color:#9ca3af;">ore notturne</div></div>`)
-    if (summary.emergencyCount > 0)
-      boxes.push(`<div style="flex:1;min-width:140px;padding:14px;border-radius:12px;text-align:center;background:#fff7ed;">
-        <div style="font-size:22px;font-weight:700;color:#f97316;">${summary.emergencyCount}</div>
-        <div style="font-size:12px;color:#9ca3af;">emergenze</div></div>`)
-    if (summary.ferieCount > 0)
-      boxes.push(`<div style="flex:1;min-width:140px;padding:14px;border-radius:12px;text-align:center;background:#eff6ff;">
-        <div style="font-size:22px;font-weight:700;color:#3b82f6;">${summary.ferieCount}</div>
-        <div style="font-size:12px;color:#9ca3af;">giorni ferie</div></div>`)
-    if (summary.permessoHours > 0)
-      boxes.push(`<div style="flex:1;min-width:140px;padding:14px;border-radius:12px;text-align:center;background:#faf5ff;">
-        <div style="font-size:22px;font-weight:700;color:#a855f7;">${summary.permessoHours}h</div>
-        <div style="font-size:12px;color:#9ca3af;">ore permesso</div></div>`)
-    if (summary.malattiaCount > 0)
-      boxes.push(`<div style="flex:1;min-width:140px;padding:14px;border-radius:12px;text-align:center;background:#f3f4f6;">
-        <div style="font-size:22px;font-weight:700;color:#6b7280;">${summary.malattiaCount}</div>
-        <div style="font-size:12px;color:#9ca3af;">giorni malattia</div></div>`)
-
     return `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Report SegnaOre</title></head>
 <body style="font-family:-apple-system,system-ui,'Segoe UI',sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#1f2937;">
@@ -137,7 +254,7 @@ export default function Report() {
     </thead>
     <tbody>${rows}</tbody>
   </table>
-  <div style="display:flex;flex-wrap:wrap;gap:10px;margin:16px 0;">${boxes.join('')}</div>
+  <div style="display:flex;flex-wrap:wrap;gap:10px;margin:16px 0;">${buildSummaryBoxes()}</div>
 </body></html>`
   }
 
