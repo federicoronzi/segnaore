@@ -1,1 +1,13 @@
 @import "tailwindcss";
+
+@media print {
+  nav, .print\:hidden, button {
+    display: none !important;
+  }
+  .print\:block {
+    display: block !important;
+  }
+  body {
+    font-size: 12px;
+  }
+}
