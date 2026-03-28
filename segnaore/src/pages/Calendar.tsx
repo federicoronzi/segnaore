@@ -8,10 +8,22 @@ import { useWorkEntries } from '../hooks/useWorkEntry'
 import { useAbsences } from '../hooks/useAbsences'
 import { useSettings } from '../hooks/useSettings'
 import { formatMinutes } from '../utils/time'
+import { db } from '../db'
+import DaySummaryCard from '../components/DaySummaryCard'
+import TimeInput from '../components/TimeInput'
+import type { Service, WorkEntry } from '../types'
+import { calcWorkedMinutes } from '../utils/time'
 
 export default function Calendar() {
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const { settings } = useSettings()
+  const [selectedDate, setSelectedDate] = useState<string | null>(null)
+  const [editing, setEditing] = useState(false)
+  const [editStep, setEditStep] = useState(1)
+  const [startTime, setStartTime] = useState('08:00')
+  const [endTime, setEndTime] = useState('17:00')
+  const [breakMinutes, setBreakMinutes] = useState<number | null>(null)
+  const [services, setServices] = useState<Service[]>([])
 
   const monthStart = startOfMonth(currentMonth)
   const monthEnd = endOfMonth(currentMonth)
@@ -33,6 +45,161 @@ export default function Calendar() {
 
   const dayHeaders = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom']
 
+  function openDay(dateStr: string) {
+    setSelectedDate(dateStr)
+    setEditing(false)
+    setEditStep(1)
+  }
+
+  function startEdit(entry?: WorkEntry) {
+    setStartTime(entry?.startTime ?? '08:00')
+    setEndTime(entry?.endTime ?? '17:00')
+    setBreakMinutes(entry?.breakMinutes ?? null)
+    setServices(entry?.services ?? [])
+    setEditing(true)
+    setEditStep(1)
+  }
+
+  async function saveEdit() {
+    if (!selectedDate || breakMinutes === null) return
+    const workedMins = calcWorkedMinutes(startTime, endTime, breakMinutes)
+    const existing = await db.workEntries.where('date').equals(selectedDate).first()
+    const data = {
+      date: selectedDate,
+      startTime,
+      endTime,
+      breakMinutes,
+      workedMinutes: workedMins,
+      services,
+    }
+    if (existing) {
+      await db.workEntries.update(existing.id!, data)
+    } else {
+      await db.workEntries.add(data)
+    }
+    setEditing(false)
+  }
+
+  async function deleteDay() {
+    if (!selectedDate) return
+    if (window.confirm('Sei sicuro di voler cancellare questa giornata?')) {
+      const existing = await db.workEntries.where('date').equals(selectedDate).first()
+      if (existing) await db.workEntries.delete(existing.id!)
+      setSelectedDate(null)
+    }
+  }
+
+  // Day detail view
+  if (selectedDate) {
+    const entry = entriesMap.get(selectedDate)
+    const absence = absenceMap.get(selectedDate)
+    const dayLabel = format(new Date(selectedDate), 'EEEE d MMMM yyyy', { locale: it })
+
+    if (editing) {
+      return (
+        <div className="py-4 max-w-sm mx-auto">
+          <button onClick={() => setEditing(false)} className="text-blue-600 text-sm mb-4">← Indietro</button>
+          <p className="text-center text-gray-400 text-sm mb-4 capitalize">{dayLabel}</p>
+
+          {editStep === 1 && (
+            <div className="text-center">
+              <h2 className="text-xl font-bold mb-6">Ora di inizio</h2>
+              <TimeInput value={startTime} onChange={setStartTime} />
+              <button onClick={() => setEditStep(2)} className="mt-8 w-full py-4 bg-blue-600 text-white rounded-xl text-lg font-semibold">Avanti →</button>
+            </div>
+          )}
+
+          {editStep === 2 && (
+            <div className="text-center">
+              <h2 className="text-xl font-bold mb-6">Ora di fine</h2>
+              <TimeInput value={endTime} onChange={setEndTime} />
+              <button onClick={() => setEditStep(3)} className="mt-8 w-full py-4 bg-blue-600 text-white rounded-xl text-lg font-semibold">Avanti →</button>
+            </div>
+          )}
+
+          {editStep === 3 && (
+            <div className="text-center">
+              <h2 className="text-xl font-bold mb-6">Hai fatto la pausa?</h2>
+              <div className="flex gap-3">
+                <button onClick={() => { setBreakMinutes(60); setEditStep(4) }} className="flex-1 bg-green-50 border-2 border-green-500 rounded-xl p-5">
+                  <div className="text-3xl font-bold text-green-500">Sì</div>
+                  <div className="text-sm text-gray-500 mt-1">1 ora</div>
+                </button>
+                <button onClick={() => { setBreakMinutes(30); setEditStep(4) }} className="flex-1 bg-orange-50 border-2 border-orange-500 rounded-xl p-5">
+                  <div className="text-3xl font-bold text-orange-500">Mezza</div>
+                  <div className="text-sm text-gray-500 mt-1">30 min</div>
+                </button>
+                <button onClick={() => { setBreakMinutes(0); setEditStep(4) }} className="flex-1 bg-red-50 border-2 border-red-500 rounded-xl p-5">
+                  <div className="text-3xl font-bold text-red-500">No</div>
+                  <div className="text-sm text-gray-500 mt-1">0 min</div>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {editStep === 4 && (
+            <div>
+              <h2 className="text-xl font-bold mb-4 text-center">Cosa hai fatto?</h2>
+              {services.map((s, i) => (
+                <div key={i} className="bg-gray-50 rounded-xl p-3 mb-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-semibold text-sm">Servizio {i + 1}</span>
+                    <button onClick={() => setServices(prev => prev.filter((_, j) => j !== i))} className="text-red-400 text-xs">✕</button>
+                  </div>
+                  <div className="flex gap-2 mb-2">
+                    <input type="time" value={s.startTime} onChange={e => setServices(prev => prev.map((x, j) => j === i ? { ...x, startTime: e.target.value } : x))} className="flex-1 p-2 border rounded-lg text-sm" />
+                    <input type="time" value={s.endTime} onChange={e => setServices(prev => prev.map((x, j) => j === i ? { ...x, endTime: e.target.value } : x))} className="flex-1 p-2 border rounded-lg text-sm" />
+                  </div>
+                  <input type="text" value={s.description} onChange={e => setServices(prev => prev.map((x, j) => j === i ? { ...x, description: e.target.value } : x))} placeholder="Descrizione" className="w-full p-2 border rounded-lg text-sm" />
+                </div>
+              ))}
+              <button onClick={() => setServices(prev => [...prev, { startTime: '08:00', endTime: '12:00', description: '' }])} className="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-400 mb-4">+ Aggiungi servizio</button>
+              <div className="flex gap-3">
+                <button onClick={() => { setServices([]); saveEdit() }} className="flex-1 py-3 bg-gray-100 text-gray-500 rounded-xl font-semibold">Salta</button>
+                <button onClick={saveEdit} className="flex-2 py-3 bg-blue-600 text-white rounded-xl font-semibold">Conferma ✓</button>
+              </div>
+            </div>
+          )}
+        </div>
+      )
+    }
+
+    return (
+      <div className="py-4">
+        <button onClick={() => setSelectedDate(null)} className="text-blue-600 text-sm mb-4">← Calendario</button>
+        <p className="text-center text-gray-400 text-sm mb-4 capitalize">{dayLabel}</p>
+
+        {entry ? (
+          <>
+            <DaySummaryCard entry={entry} onEdit={() => startEdit(entry)} />
+            <div className="text-center mt-6">
+              <button onClick={deleteDay} className="text-red-400 text-xs hover:underline">Cancella giornata</button>
+            </div>
+          </>
+        ) : absence ? (
+          <div className="bg-white rounded-2xl shadow-sm p-6 text-center">
+            <div className="text-4xl mb-2">
+              {absence.type === 'ferie' && '🏖️'}
+              {absence.type === 'permesso' && '🕐'}
+              {absence.type === 'malattia' && '🤒'}
+            </div>
+            <div className="text-lg font-semibold capitalize">{absence.type}</div>
+            {absence.hours && <div className="text-gray-400">{absence.hours}h</div>}
+            {absence.note && <div className="text-sm text-gray-500 mt-2 italic">{absence.note}</div>}
+          </div>
+        ) : (
+          <div className="text-center">
+            <p className="text-gray-300 mb-4">Nessun dato per questo giorno</p>
+            <button onClick={() => startEdit()} className="py-3 px-6 bg-blue-600 text-white rounded-xl font-semibold">
+              + Inserisci ore
+            </button>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // Calendar grid
   return (
     <div className="py-4">
       <div className="flex justify-between items-center mb-4">
@@ -74,7 +241,8 @@ export default function Calendar() {
           return (
             <div
               key={dateStr}
-              className={`p-1 rounded-lg text-center min-h-[52px] ${
+              onClick={() => inMonth && openDay(dateStr)}
+              className={`p-1 rounded-lg text-center min-h-[52px] cursor-pointer active:scale-95 transition-transform ${
                 !inMonth ? 'opacity-30' : ''
               } ${today ? 'ring-2 ring-blue-500' : ''} ${bgColor || 'bg-gray-50'}`}
             >
