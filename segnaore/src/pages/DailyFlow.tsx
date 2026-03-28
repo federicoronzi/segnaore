@@ -27,24 +27,24 @@ export default function DailyFlow() {
       <div className="py-6">
         <p className="text-center text-gray-400 text-sm mb-4 capitalize">{todayLabel}</p>
         <DaySummaryCard entry={entry} onEdit={() => setEditing(true)} />
-        {!entry.nightMinutes && (
-          <div className="text-center mt-4">
-            <button
-              onClick={() => {
-                setShowNight(true)
-                setEditing(true)
-                setStep(5)
-                setStartTime(entry.startTime)
-                setEndTime(entry.endTime)
-                setBreakMinutes(entry.breakMinutes)
-                setServices(entry.services)
-              }}
-              className="text-indigo-400 text-sm hover:underline"
-            >
-              Hai lavorato di notte?
-            </button>
-          </div>
-        )}
+        <div className="text-center mt-4">
+          <button
+            onClick={() => {
+              setShowNight(true)
+              setEditing(true)
+              setStep(5)
+              setStartTime(entry.startTime)
+              setEndTime(entry.endTime)
+              setBreakMinutes(entry.breakMinutes)
+              setServices(entry.services)
+              if (entry.nightStartTime) setNightStart(entry.nightStartTime)
+              if (entry.nightEndTime) setNightEnd(entry.nightEndTime)
+            }}
+            className="text-indigo-400 text-sm hover:underline"
+          >
+            {entry.nightMinutes ? '🌙 Modifica ore notturne' : 'Hai lavorato di notte?'}
+          </button>
+        </div>
         <div className="text-center mt-6">
           <button
             onClick={() => {
