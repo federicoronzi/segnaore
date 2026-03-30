@@ -21,7 +21,7 @@ App per tracciare le ore lavorate giornalmente con resoconti settimanali, mensil
 
 Barra superiore fissa con:
 - Logo/nome "SegnaOre" a sinistra
-- Voci menu a destra: Calendario, Report, Reperibilità, Impostazioni
+- Voci menu a destra: Calendario, Report, Reperibilità, Permessi/Ferie, Impostazioni
 - Su mobile: le voci diventano icone compatte
 
 La schermata principale è il flusso di inserimento giornaliero.
@@ -63,6 +63,12 @@ La schermata principale è il flusso di inserimento giornaliero.
 - Mostra ore lavorate in grande (es. "8h 00m")
 - Dettaglio: inizio, fine, pausa
 - Se compilati, lista servizi svolti
+
+### Lavoro notturno (dopo il riepilogo, poco invasivo)
+Dopo il riepilogo della giornata, un link discreto in basso: "Hai lavorato di notte?"
+- Click → si apre un mini-form con ora inizio e ora fine del turno notturno
+- Le ore notturne vengono salvate separatamente e conteggiate a parte nei report (box dedicato come straordinari, ferie, ecc.)
+- Se non serve, non si nota — è solo una riga di testo cliccabile
 
 ### Giornata già compilata
 Se l'utente apre l'app e la giornata corrente è già stata inserita, mostra direttamente il riepilogo con un bottone "Modifica" per rientrare nel flusso e correggere i dati.
@@ -108,11 +114,45 @@ Accessibile dal menu. Permette di consultare e stampare i dati.
 - **Totale ore lavorate** nel periodo
 - **Straordinario:** calcolato automaticamente (ore lavorate - ore standard da impostazioni)
 - **Reperibilità:** se presente nel periodo, mostra numero emergenze
+- **Ferie:** giorni di ferie nel periodo (box separato)
+- **Permessi:** ore di permesso nel periodo (box separato)
+- **Malattia:** giorni di malattia nel periodo (box separato)
+- **Ore notturne:** totale ore di lavoro notturno nel periodo (box separato)
 - Servizi svolti (se compilati) consultabili espandendo il giorno
 
 ### Azioni
 - **Stampa** — apre la finestra di stampa del browser
 - **Scarica PDF** — genera e scarica un PDF del report
+
+---
+
+## Permessi e Ferie
+
+Sezione accessibile dal menu per tracciare assenze dal lavoro.
+
+### Tipi di assenza
+- **Ferie** — giornata intera di ferie
+- **Permesso** — assenza parziale (con ore di permesso)
+- **Malattia** — giornata di malattia
+
+### Registrazione
+- Seleziona il giorno (o intervallo di giorni per ferie multi-giorno)
+- Scegli il tipo: Ferie / Permesso / Malattia
+- Se Permesso: inserisci quante ore (es. 2h di permesso)
+- Nota facoltativa (es. "visita medica")
+
+### Conteggio separato nei Report
+Permessi, ferie e malattie vengono conteggiati a parte nel report, come gli straordinari:
+- **Giorni di ferie** — totale giorni nel periodo
+- **Ore di permesso** — totale ore nel periodo
+- **Giorni di malattia** — totale giorni nel periodo
+Ciascuno con il proprio box riepilogativo, separato dalle ore lavorate e dagli straordinari.
+
+### Vista nel Calendario
+- Ferie: colore azzurro
+- Permesso: colore viola
+- Malattia: colore grigio
+- Visibili a colpo d'occhio nella vista mensile
 
 ---
 
@@ -146,6 +186,7 @@ Compilate al primo avvio (wizard), modificabili successivamente dal menu.
 | Campo | Tipo | Descrizione |
 |-------|------|-------------|
 | id | string | "main" (record singolo) |
+| userName | string | Nome dell'utente |
 | standardHours | number | Ore giornaliere standard |
 | reducedDay | number | Giorno settimana con orario ridotto (0=Dom, 5=Ven) |
 | reducedHours | number | Ore nel giorno ridotto |
@@ -162,6 +203,9 @@ Compilate al primo avvio (wizard), modificabili successivamente dal menu.
 | breakMinutes | number | Minuti di pausa (0, 30, 60) |
 | workedMinutes | number | Minuti lavorati (calcolato) |
 | services | Service[] | Lista servizi (facoltativo) |
+| nightStartTime | string? | Ora inizio lavoro notturno (facoltativo) |
+| nightEndTime | string? | Ora fine lavoro notturno (facoltativo) |
+| nightMinutes | number? | Minuti notturni (calcolato se orari presenti) |
 
 ### Service (oggetto innestato in workEntries)
 | Campo | Tipo | Descrizione |
@@ -176,6 +220,16 @@ Compilate al primo avvio (wizard), modificabili successivamente dal menu.
 | id | string | Auto-generato |
 | weekStart | string | Data ISO del lunedì della settimana |
 | active | boolean | Se la reperibilità è attiva |
+
+### absences
+| Campo | Tipo | Descrizione |
+|-------|------|-------------|
+| id | string | Auto-generato |
+| date | string | Data ISO (YYYY-MM-DD) |
+| endDate | string? | Data fine per ferie multi-giorno (facoltativo) |
+| type | string | "ferie" / "permesso" / "malattia" |
+| hours | number? | Ore di permesso (solo per tipo "permesso") |
+| note | string? | Nota facoltativa |
 
 ### emergencies
 | Campo | Tipo | Descrizione |
@@ -202,10 +256,12 @@ Compilate al primo avvio (wizard), modificabili successivamente dal menu.
 
 ## Primo Avvio
 
-Al primo avvio (setupComplete = false), l'app mostra un wizard di 3 step:
-1. "Quante ore lavori al giorno?" → input numero
-2. "C'è un giorno con meno ore?" → selezione giorno + ore ridotte (con opzione "No, tutti uguali")
-3. "Quali giorni lavori?" → toggle giorni settimana
+Al primo avvio (setupComplete = false), l'app mostra un wizard di 5 step:
+1. "Come ti chiami?" → input nome (verrà usato per personalizzare l'app e nei report stampati)
+2. Avviso: "I tuoi dati vengono salvati solo su questo dispositivo. Nessuno può vederli tranne te. Ricordati di fare il backup dalle impostazioni!"
+3. "Quante ore lavori al giorno?" → input numero
+4. "C'è un giorno con meno ore?" → selezione giorno + ore ridotte (con opzione "No, tutti uguali")
+5. "Quali giorni lavori?" → toggle giorni settimana
 
 Dopo il wizard, si arriva al flusso principale.
 

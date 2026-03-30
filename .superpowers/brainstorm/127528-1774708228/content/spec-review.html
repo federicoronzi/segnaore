@@ -1,0 +1,92 @@
+<h2>SegnaOre — Design Spec</h2>
+<p class="subtitle">Revisiona la spec e dimmi se va bene nel terminale</p>
+
+<div style="max-width:700px;margin:0 auto;text-align:left;">
+
+  <div class="section">
+    <h3>Panoramica</h3>
+    <p>App PWA per tracciare le ore lavorate giornalmente con resoconti settimanali, mensili e annuali consultabili e stampabili. Mobile-first, offline-first, dati salvati sul dispositivo (IndexedDB).</p>
+    <p><strong>Stack:</strong> React + TypeScript + Vite + Tailwind CSS + Dexie.js</p>
+  </div>
+
+  <div class="section" style="background:#f8f9fa;padding:20px;border-radius:12px;margin-bottom:20px;">
+    <h3 style="color:#1976d2;">Flusso Giornaliero (4 step)</h3>
+    <ol style="line-height:2;font-size:15px;">
+      <li><strong>Ora di Inizio</strong> — input ore:minuti grandi, bottone Avanti</li>
+      <li><strong>Ora di Fine</strong> — stessa struttura</li>
+      <li><strong>Pausa</strong> — 3 box: Sì (1h) / Mezza (30m) / No (0m)</li>
+      <li><strong>Cosa hai fatto</strong> — facoltativo, lista servizi con orario e descrizione</li>
+    </ol>
+    <p>→ <strong>Riepilogo</strong> con ore lavorate in grande</p>
+    <p>→ Se la giornata è già compilata, mostra il riepilogo con bottone "Modifica"</p>
+  </div>
+
+  <div class="section" style="background:#fff8e1;padding:20px;border-radius:12px;margin-bottom:20px;">
+    <h3 style="color:#ff9800;">Reperibilità</h3>
+    <ul style="line-height:2;font-size:15px;">
+      <li>Toggle on/off per la settimana</li>
+      <li>Registra emergenze: <strong>solo data obbligatoria</strong></li>
+      <li>Orario e descrizione facoltativi (sezioni apribili)</li>
+      <li>Contatore emergenze + ore totali (se orari inseriti)</li>
+    </ul>
+  </div>
+
+  <div class="section" style="background:#e3f2fd;padding:20px;border-radius:12px;margin-bottom:20px;">
+    <h3 style="color:#1976d2;">Report</h3>
+    <ul style="line-height:2;font-size:15px;">
+      <li>4 periodi: <strong>Settimana / Mese / Anno / Custom</strong></li>
+      <li>Navigazione con frecce ← →</li>
+      <li>Tabella giornaliera: inizio, fine, pausa, ore</li>
+      <li>Totale ore + <strong>straordinario automatico</strong></li>
+      <li>Reperibilità inclusa nel report</li>
+      <li>Bottoni <strong>Stampa</strong> e <strong>Scarica PDF</strong></li>
+    </ul>
+  </div>
+
+  <div class="section" style="background:#f3e5f5;padding:20px;border-radius:12px;margin-bottom:20px;">
+    <h3 style="color:#7b1fa2;">Calendario</h3>
+    <ul style="line-height:2;font-size:15px;">
+      <li>Vista mensile con ore per giorno</li>
+      <li>Colore diverso per straordinario</li>
+      <li>Icona emergenza se presente</li>
+      <li>Click su giorno → dettaglio + modifica</li>
+    </ul>
+  </div>
+
+  <div class="section" style="background:#e8f5e9;padding:20px;border-radius:12px;margin-bottom:20px;">
+    <h3 style="color:#4caf50;">Impostazioni (wizard al primo avvio)</h3>
+    <ol style="line-height:2;font-size:15px;">
+      <li>Ore giornaliere standard (es. 8)</li>
+      <li>Giorno con orario ridotto + quante ore (es. Venerdì = 6h)</li>
+      <li>Giorni lavorativi (default Lun-Ven)</li>
+    </ol>
+    <p style="margin-top:8px;">+ <strong>Esporta/Importa backup</strong> in JSON</p>
+  </div>
+
+  <div class="section" style="background:#fafafa;padding:20px;border-radius:12px;margin-bottom:20px;">
+    <h3>Modello Dati</h3>
+    <table style="width:100%;border-collapse:collapse;font-size:14px;">
+      <tr style="border-bottom:2px solid #ddd;">
+        <th style="text-align:left;padding:8px;">Tabella</th>
+        <th style="text-align:left;padding:8px;">Contenuto</th>
+      </tr>
+      <tr style="border-bottom:1px solid #eee;">
+        <td style="padding:8px;font-weight:600;">settings</td>
+        <td style="padding:8px;">Ore standard, giorno ridotto, giorni lavorativi, flag setup completato</td>
+      </tr>
+      <tr style="border-bottom:1px solid #eee;">
+        <td style="padding:8px;font-weight:600;">workEntries</td>
+        <td style="padding:8px;">Una riga per giorno: inizio, fine, pausa, minuti lavorati, servizi</td>
+      </tr>
+      <tr style="border-bottom:1px solid #eee;">
+        <td style="padding:8px;font-weight:600;">onCallWeeks</td>
+        <td style="padding:8px;">Settimane di reperibilità attive</td>
+      </tr>
+      <tr>
+        <td style="padding:8px;font-weight:600;">emergencies</td>
+        <td style="padding:8px;">Emergenze: data (obblig.), orario e descrizione (facoltativi)</td>
+      </tr>
+    </table>
+  </div>
+
+</div>

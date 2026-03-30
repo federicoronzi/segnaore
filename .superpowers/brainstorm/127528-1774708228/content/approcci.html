@@ -1,0 +1,84 @@
+<h2>Quale approccio tecnico?</h2>
+<p class="subtitle">3 opzioni con diversi trade-off per la tua app segna-ore</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>PWA con React + localStorage</h3>
+      <p><strong>Progressive Web App</strong> — si installa come un'app su telefono e PC direttamente dal browser. Dati salvati nel browser (localStorage/IndexedDB).</p>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Pro</h4>
+          <ul>
+            <li>Si installa con un tap, niente app store</li>
+            <li>Funziona offline</li>
+            <li>Un solo codice per PC e telefono</li>
+            <li>Facile da distribuire (basta un link)</li>
+            <li>UI moderna e reattiva</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Contro</h4>
+          <ul>
+            <li>Dati legati al browser (se cancelli i dati, perdi tutto)</li>
+            <li>Per sincronizzare tra dispositivi servirà un backend in futuro</li>
+          </ul>
+        </div>
+      </div>
+      <p style="margin-top:12px;padding:8px 12px;background:#e8f5e9;border-radius:6px;font-weight:600;">⭐ Raccomandato — miglior equilibrio semplicità / scalabilità futura</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>App Desktop (Electron / Tauri)</h3>
+      <p>Applicazione nativa installabile su PC. Per il telefono servirebbe un'app separata.</p>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Pro</h4>
+          <ul>
+            <li>Sensazione "app vera" su PC</li>
+            <li>Dati salvati su disco in modo affidabile</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Contro</h4>
+          <ul>
+            <li>Non funziona su telefono senza sviluppo extra</li>
+            <li>Distribuzione più complessa (installer per ogni OS)</li>
+            <li>Più pesante da sviluppare</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Web App con backend (Next.js + database)</h3>
+      <p>App web completa con server e database. Login, sincronizzazione, multi-utente da subito.</p>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Pro</h4>
+          <ul>
+            <li>Sincronizzazione tra dispositivi immediata</li>
+            <li>Multi-utente nativo</li>
+            <li>Dati sicuri su server</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Contro</h4>
+          <ul>
+            <li>Serve un server sempre acceso (costo hosting)</li>
+            <li>Più complessa da sviluppare e mantenere</li>
+            <li>Richiede connessione internet</li>
+            <li>Eccessiva per la fase iniziale</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

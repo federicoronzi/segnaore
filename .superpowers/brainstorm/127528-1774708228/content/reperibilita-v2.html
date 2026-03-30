@@ -1,0 +1,137 @@
+<h2>Reperibilità v2 — Tutto facoltativo tranne il conteggio</h2>
+<p class="subtitle">L'emergenza si registra con un tap. Dettagli solo se vuoi.</p>
+
+<div style="display:flex;flex-direction:column;gap:24px;max-width:420px;margin:0 auto;">
+
+  <!-- Form emergenza semplificata -->
+  <div class="mockup">
+    <div class="mockup-header">Nuova emergenza — versione rapida</div>
+    <div class="mockup-body" style="padding:20px;">
+      <h3 style="margin-bottom:8px;font-size:16px;text-align:center;">Registra emergenza</h3>
+      <p style="font-size:13px;color:#888;text-align:center;margin-bottom:20px;">Solo la data è obbligatoria. Il resto è facoltativo.</p>
+
+      <!-- Data (obbligatoria) -->
+      <div style="margin-bottom:16px;">
+        <label style="font-size:13px;color:#333;display:block;margin-bottom:4px;font-weight:600;">📅 Data <span style="color:#f44336;">*</span></label>
+        <input class="mock-input" style="width:100%;box-sizing:border-box;font-size:16px;padding:10px;" value="28/03/2026">
+      </div>
+
+      <!-- Orari (facoltativo) - collassato -->
+      <div style="border:1px solid #e0e0e0;border-radius:10px;margin-bottom:12px;overflow:hidden;">
+        <div style="padding:12px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;background:#fafafa;">
+          <span style="font-size:14px;color:#666;">🕐 Aggiungi orari</span>
+          <span style="font-size:18px;color:#bbb;">▸</span>
+        </div>
+      </div>
+
+      <!-- Descrizione (facoltativo) - collassato -->
+      <div style="border:1px solid #e0e0e0;border-radius:10px;margin-bottom:20px;overflow:hidden;">
+        <div style="padding:12px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;background:#fafafa;">
+          <span style="font-size:14px;color:#666;">📝 Aggiungi descrizione</span>
+          <span style="font-size:18px;color:#bbb;">▸</span>
+        </div>
+      </div>
+
+      <button class="mock-button" style="width:100%;padding:14px;font-size:16px;background:#ff9800;color:white;border:none;border-radius:10px;cursor:pointer;font-weight:600;">Salva emergenza</button>
+    </div>
+  </div>
+
+  <!-- Form con dettagli espansi -->
+  <div class="mockup">
+    <div class="mockup-header">Stessa form — con dettagli aperti</div>
+    <div class="mockup-body" style="padding:20px;">
+      <h3 style="margin-bottom:8px;font-size:16px;text-align:center;">Registra emergenza</h3>
+      <p style="font-size:13px;color:#888;text-align:center;margin-bottom:20px;">Solo la data è obbligatoria. Il resto è facoltativo.</p>
+
+      <!-- Data (obbligatoria) -->
+      <div style="margin-bottom:16px;">
+        <label style="font-size:13px;color:#333;display:block;margin-bottom:4px;font-weight:600;">📅 Data <span style="color:#f44336;">*</span></label>
+        <input class="mock-input" style="width:100%;box-sizing:border-box;font-size:16px;padding:10px;" value="28/03/2026">
+      </div>
+
+      <!-- Orari (espanso) -->
+      <div style="border:1px solid #ff9800;border-radius:10px;margin-bottom:12px;overflow:hidden;">
+        <div style="padding:12px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;background:#fff8e1;">
+          <span style="font-size:14px;color:#e65100;font-weight:600;">🕐 Orari</span>
+          <span style="font-size:18px;color:#ff9800;">▾</span>
+        </div>
+        <div style="padding:12px 16px;display:flex;gap:12px;">
+          <div style="flex:1;">
+            <label style="font-size:12px;color:#888;display:block;margin-bottom:4px;">Inizio</label>
+            <div style="display:flex;align-items:center;gap:4px;">
+              <div style="background:#f5f5f5;border:2px solid #ff9800;border-radius:8px;padding:8px 12px;font-size:20px;font-weight:700;color:#ff9800;text-align:center;">03</div>
+              <span style="color:#666;">:</span>
+              <div style="background:#f5f5f5;border:2px solid #ff9800;border-radius:8px;padding:8px 12px;font-size:20px;font-weight:700;color:#ff9800;text-align:center;">00</div>
+            </div>
+          </div>
+          <div style="flex:1;">
+            <label style="font-size:12px;color:#888;display:block;margin-bottom:4px;">Fine</label>
+            <div style="display:flex;align-items:center;gap:4px;">
+              <div style="background:#f5f5f5;border:2px solid #ff9800;border-radius:8px;padding:8px 12px;font-size:20px;font-weight:700;color:#ff9800;text-align:center;">04</div>
+              <span style="color:#666;">:</span>
+              <div style="background:#f5f5f5;border:2px solid #ff9800;border-radius:8px;padding:8px 12px;font-size:20px;font-weight:700;color:#ff9800;text-align:center;">30</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Descrizione (espanso) -->
+      <div style="border:1px solid #ff9800;border-radius:10px;margin-bottom:20px;overflow:hidden;">
+        <div style="padding:12px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;background:#fff8e1;">
+          <span style="font-size:14px;color:#e65100;font-weight:600;">📝 Descrizione</span>
+          <span style="font-size:18px;color:#ff9800;">▾</span>
+        </div>
+        <div style="padding:12px 16px;">
+          <input class="mock-input" style="width:100%;box-sizing:border-box;" placeholder="Es. Via Roma 15, perdita acqua">
+        </div>
+      </div>
+
+      <button class="mock-button" style="width:100%;padding:14px;font-size:16px;background:#ff9800;color:white;border:none;border-radius:10px;cursor:pointer;font-weight:600;">Salva emergenza</button>
+    </div>
+  </div>
+
+  <!-- Lista emergenze aggiornata -->
+  <div class="mockup">
+    <div class="mockup-header">Lista emergenze — mix dettagliate e rapide</div>
+    <div class="mockup-body" style="padding:20px;">
+
+      <div style="background:#fff3e0;border-radius:10px;padding:12px;margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-weight:600;font-size:15px;">Emergenza #1</div>
+            <div style="font-size:13px;color:#888;">Lun 24 Mar — 22:30 → 23:45</div>
+          </div>
+          <span style="font-size:12px;background:#ff9800;color:white;padding:3px 8px;border-radius:4px;">1h 15m</span>
+        </div>
+        <div style="font-size:13px;color:#666;margin-top:6px;font-style:italic;">Via Roma 15, perdita acqua</div>
+      </div>
+
+      <div style="background:#fff3e0;border-radius:10px;padding:12px;margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-weight:600;font-size:15px;">Emergenza #2</div>
+            <div style="font-size:13px;color:#888;">Mer 26 Mar</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:#fff3e0;border-radius:10px;padding:12px;margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-weight:600;font-size:15px;">Emergenza #3</div>
+            <div style="font-size:13px;color:#888;">Gio 27 Mar</div>
+          </div>
+        </div>
+        <div style="font-size:13px;color:#666;margin-top:6px;font-style:italic;">Viale Mazzini, blackout</div>
+      </div>
+
+      <!-- Riepilogo -->
+      <div style="background:#f5f5f5;border-radius:10px;padding:12px;margin-top:16px;text-align:center;">
+        <div style="font-size:28px;font-weight:700;color:#ff9800;">3</div>
+        <div style="font-size:13px;color:#888;">emergenze questa settimana</div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
