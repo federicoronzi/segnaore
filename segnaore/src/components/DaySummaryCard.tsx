@@ -1,4 +1,5 @@
 import { formatMinutes, formatTime } from '../utils/time'
+import { useSettings } from '../hooks/useSettings'
 import type { WorkEntry } from '../types'
 
 interface DaySummaryCardProps {
@@ -7,12 +8,27 @@ interface DaySummaryCardProps {
 }
 
 export default function DaySummaryCard({ entry, onEdit }: DaySummaryCardProps) {
+  const { settings } = useSettings()
+
+  const dayOfWeek = new Date(entry.date + 'T12:00:00').getDay()
+  const expectedMinutes =
+    settings.reducedDay === dayOfWeek && settings.reducedHours != null
+      ? settings.reducedHours * 60
+      : settings.standardHours * 60
+  const overtime = entry.workedMinutes - expectedMinutes
+
   return (
     <div className="bg-white rounded-2xl shadow-sm p-6 text-center">
       <div className="text-5xl font-bold text-blue-600 mb-1">
         {formatMinutes(entry.workedMinutes)}
       </div>
       <p className="text-gray-400 mb-4">ore lavorate oggi</p>
+
+      {overtime !== 0 && (
+        <div className={`mb-4 text-lg font-semibold ${overtime > 0 ? 'text-green-600' : 'text-red-500'}`}>
+          {overtime > 0 ? '+' : ''}{formatMinutes(overtime)} straordinario
+        </div>
+      )}
 
       <div className="flex justify-around bg-gray-50 rounded-xl p-3 text-sm">
         <div>
