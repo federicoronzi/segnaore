@@ -24,32 +24,31 @@ export default function Setup() {
   async function finish() {
     if (saving) return
     setSaving(true)
+    const data = {
+      id: 'main' as const,
+      userName,
+      companyName,
+      standardHours,
+      reducedDay: hasReducedDay ? reducedDay : null,
+      reducedHours: hasReducedDay ? reducedHours : null,
+      workDays,
+      setupComplete: true,
+    }
     try {
-      const data = {
-        id: 'main' as const,
-        userName,
-        companyName,
-        standardHours,
-        reducedDay: hasReducedDay ? reducedDay : null,
-        reducedHours: hasReducedDay ? reducedHours : null,
-        workDays,
-        setupComplete: true,
-      }
-      // Write directly to DB and verify
       await db.open()
       await db.settings.put(data)
-      // Verify the write succeeded
-      const saved = await db.settings.get('main')
-      if (!saved?.setupComplete) {
-        // Retry once
-        await db.settings.put(data)
-      }
-      window.location.href = window.location.pathname + window.location.search + '#/'
-      window.location.reload()
     } catch (e) {
-      setSaving(false)
-      alert('Errore nel salvataggio. Riprova.')
+      // IndexedDB failed - use localStorage as fallback
+      try {
+        localStorage.setItem('segnaore_settings', JSON.stringify(data))
+      } catch {
+        setSaving(false)
+        alert('Errore: ' + (e instanceof Error ? e.message : String(e)))
+        return
+      }
     }
+    window.location.href = window.location.pathname + window.location.search + '#/'
+    window.location.reload()
   }
 
   return (

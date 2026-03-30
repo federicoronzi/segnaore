@@ -21,12 +21,32 @@ export function useSettings() {
     try {
       await db.open()
       const found = await db.settings.get('main')
-      setSettings(found ?? null)
+      if (found) {
+        setSettings(found)
+        setIsLoading(false)
+        return
+      }
+    } catch {
+      // IndexedDB failed
+    }
+    // Fallback: check localStorage
+    try {
+      const stored = localStorage.getItem('segnaore_settings')
+      if (stored) {
+        const parsed = JSON.parse(stored) as Settings
+        setSettings(parsed)
+        // Try to migrate to IndexedDB
+        try {
+          await db.open()
+          await db.settings.put(parsed)
+        } catch { /* ignore */ }
+      } else {
+        setSettings(null)
+      }
     } catch {
       setSettings(null)
-    } finally {
-      setIsLoading(false)
     }
+    setIsLoading(false)
   }, [])
 
   useEffect(() => {
@@ -34,9 +54,13 @@ export function useSettings() {
   }, [reload])
 
   async function saveSettings(updates: Partial<Settings>) {
-    const current = (await db.settings.get('main')) ?? DEFAULT_SETTINGS
-    const updated = { ...current, ...updates, id: 'main' }
-    await db.settings.put(updated)
+    const current = (await db.settings.get('main').catch(() => null)) ?? DEFAULT_SETTINGS
+    const updated = { ...current, ...updates, id: 'main' } as Settings
+    try {
+      await db.settings.put(updated)
+    } catch {
+      localStorage.setItem('segnaore_settings', JSON.stringify(updated))
+    }
     setSettings(updated)
   }
 
