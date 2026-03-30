@@ -1,10 +1,9 @@
 import { useState } from 'react'
-import { useSettings } from '../hooks/useSettings'
+import { db } from '../db'
 
 const DAY_LABELS = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab']
 
 export default function Setup() {
-  const { saveSettings } = useSettings()
   const [step, setStep] = useState(1)
   const [userName, setUserName] = useState('')
   const [companyName, setCompanyName] = useState('')
@@ -20,17 +19,37 @@ export default function Setup() {
     )
   }
 
+  const [saving, setSaving] = useState(false)
+
   async function finish() {
-    await saveSettings({
-      userName,
-      companyName,
-      standardHours,
-      reducedDay: hasReducedDay ? reducedDay : null,
-      reducedHours: hasReducedDay ? reducedHours : null,
-      workDays,
-      setupComplete: true,
-    })
-    window.location.reload()
+    if (saving) return
+    setSaving(true)
+    try {
+      const data = {
+        id: 'main' as const,
+        userName,
+        companyName,
+        standardHours,
+        reducedDay: hasReducedDay ? reducedDay : null,
+        reducedHours: hasReducedDay ? reducedHours : null,
+        workDays,
+        setupComplete: true,
+      }
+      // Write directly to DB and verify
+      await db.open()
+      await db.settings.put(data)
+      // Verify the write succeeded
+      const saved = await db.settings.get('main')
+      if (!saved?.setupComplete) {
+        // Retry once
+        await db.settings.put(data)
+      }
+      window.location.href = window.location.pathname + window.location.search + '#/'
+      window.location.reload()
+    } catch (e) {
+      setSaving(false)
+      alert('Errore nel salvataggio. Riprova.')
+    }
   }
 
   return (
@@ -188,9 +207,10 @@ export default function Setup() {
             </div>
             <button
               onClick={finish}
-              className="w-full py-3 bg-green-500 text-white rounded-xl text-lg font-semibold"
+              disabled={saving}
+              className="w-full py-3 bg-green-500 text-white rounded-xl text-lg font-semibold disabled:opacity-50"
             >
-              Fatto! ✓
+              {saving ? 'Salvataggio...' : 'Fatto! ✓'}
             </button>
           </div>
         )}
