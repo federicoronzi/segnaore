@@ -211,14 +211,7 @@ export default function Report() {
       const isReduced = settings.reducedDay === dayOfWeek
       const isWorkDay = settings.workDays.includes(dayOfWeek)
       const dayLabel = formatDateIT(day)
-      if (!isWorkDay && !entry && !absence) {
-        return `<tr style="background:#f9fafb;">
-          <td style="text-align:left;padding:8px 12px;font-weight:600;text-transform:capitalize;color:#d1d5db;">${dayLabel}</td>
-          <td colspan="3" style="text-align:center;color:#d1d5db;">—</td>
-          <td style="text-align:center;color:#d1d5db;">—</td>
-          <td style="text-align:right;padding:8px 12px;color:#d1d5db;">—</td>
-        </tr>`
-      }
+      if (!isWorkDay && !entry && !absence) return ''
 
       const bgStyle = isReduced ? 'background:#fffbeb;' : absence ? 'background:#faf5ff;' : ''
 
@@ -398,16 +391,7 @@ export default function Report() {
                 const isReduced = settings.reducedDay === dayOfWeek
                 const isWorkDay = settings.workDays.includes(dayOfWeek)
 
-                if (!isWorkDay && !entry && !absence) {
-                  return (
-                    <tr key={day} className="border-t bg-gray-50/50">
-                      <td className="px-3 py-2 font-semibold capitalize text-gray-300">{formatDateIT(day)}</td>
-                      <td colSpan={3} className="text-center text-xs text-gray-300">—</td>
-                      <td className="text-center text-gray-300">—</td>
-                      <td className="text-right px-3 text-gray-300">—</td>
-                    </tr>
-                  )
-                }
+                if (!isWorkDay && !entry && !absence) return null
 
                 return (
                   <tr
