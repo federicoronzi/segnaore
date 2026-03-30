@@ -11,8 +11,10 @@ export default function DaySummaryCard({ entry, onEdit }: DaySummaryCardProps) {
   const { settings } = useSettings()
 
   const dayOfWeek = new Date(entry.date + 'T12:00:00').getDay()
-  const expectedMinutes =
-    settings.reducedDay === dayOfWeek && settings.reducedHours != null
+  const isWorkDay = settings.workDays.includes(dayOfWeek)
+  const expectedMinutes = !isWorkDay
+    ? 0
+    : settings.reducedDay === dayOfWeek && settings.reducedHours != null
       ? settings.reducedHours * 60
       : settings.standardHours * 60
   const overtime = entry.workedMinutes - expectedMinutes
