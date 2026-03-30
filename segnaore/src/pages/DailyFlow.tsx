@@ -24,7 +24,7 @@ export default function DailyFlow() {
 
   if (entry && !editing) {
     return (
-      <div className="max-w-sm mx-auto flex flex-col justify-center" style={{ minHeight: 'calc(100vh - 120px)' }}>
+      <div className="max-w-sm mx-auto flex flex-col justify-center" style={{ minHeight: 'calc(100dvh - 120px)' }}>
         <p className="text-center text-gray-400 text-sm mb-4 capitalize">{todayLabel}</p>
         <DaySummaryCard entry={entry} onEdit={() => setEditing(true)} />
         <div className="text-center mt-4">
@@ -94,7 +94,7 @@ export default function DailyFlow() {
   }
 
   return (
-    <div className="max-w-sm mx-auto flex flex-col justify-center" style={{ minHeight: 'calc(100vh - 120px)' }}>
+    <div className="max-w-sm mx-auto flex flex-col justify-center" style={{ minHeight: 'calc(100dvh - 120px)' }}>
       <p className="text-center text-gray-400 text-sm mb-6 capitalize">{todayLabel}</p>
 
       {step === 1 && (
