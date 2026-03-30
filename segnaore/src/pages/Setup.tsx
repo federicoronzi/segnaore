@@ -36,8 +36,8 @@ export default function Setup() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="max-w-sm w-full">
+    <div className="min-h-[100dvh] bg-gray-50 flex items-center justify-center p-4 overflow-y-auto">
+      <div className="max-w-sm w-full pb-8">
         {/* Progress dots */}
         <div className="flex justify-center gap-2 mb-8">
           {[1, 2, 3, 4, 5].map(s => (
