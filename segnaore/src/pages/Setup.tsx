@@ -35,17 +35,11 @@ export default function Setup() {
       setupComplete: true,
     }
     try {
-      await db.open()
       await db.settings.put(data)
     } catch (e) {
-      // IndexedDB failed - use localStorage as fallback
-      try {
-        localStorage.setItem('segnaore_settings', JSON.stringify(data))
-      } catch {
-        setSaving(false)
-        alert('Errore: ' + (e instanceof Error ? e.message : String(e)))
-        return
-      }
+      setSaving(false)
+      alert('Errore: ' + (e instanceof Error ? e.message : String(e)))
+      return
     }
     window.location.href = window.location.pathname + window.location.search + '#/'
     window.location.reload()

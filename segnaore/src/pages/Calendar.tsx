@@ -63,28 +63,21 @@ export default function Calendar() {
   async function saveEdit() {
     if (!selectedDate || breakMinutes === null) return
     const workedMins = calcWorkedMinutes(startTime, endTime, breakMinutes)
-    const existing = await db.workEntries.where('date').equals(selectedDate).first()
-    const data = {
+    await db.workEntries.save({
       date: selectedDate,
       startTime,
       endTime,
       breakMinutes,
       workedMinutes: workedMins,
       services,
-    }
-    if (existing) {
-      await db.workEntries.update(existing.id!, data)
-    } else {
-      await db.workEntries.add(data)
-    }
+    })
     setEditing(false)
   }
 
   async function deleteDay() {
     if (!selectedDate) return
     if (window.confirm('Sei sicuro di voler cancellare questa giornata?')) {
-      const existing = await db.workEntries.where('date').equals(selectedDate).first()
-      if (existing) await db.workEntries.delete(existing.id!)
+      await db.workEntries.deleteByDate(selectedDate)
       setSelectedDate(null)
     }
   }

@@ -1,22 +1,29 @@
-import { useLiveQuery } from 'dexie-react-hooks'
+import { useState, useEffect, useCallback } from 'react'
 import { db } from '../db'
 import type { Absence } from '../types'
 
 export function useAbsences(startDate?: string, endDate?: string) {
-  const absences = useLiveQuery(() => {
+  const [absences, setAbsences] = useState<Absence[]>([])
+
+  const reload = useCallback(async () => {
     if (startDate && endDate) {
-      return db.absences.where('date').between(startDate, endDate, true, true).toArray()
+      setAbsences(await db.absences.getByDateRange(startDate, endDate))
+    } else {
+      setAbsences(await db.absences.toArray())
     }
-    return db.absences.toArray()
   }, [startDate, endDate])
+
+  useEffect(() => { reload() }, [reload])
 
   async function addAbsence(data: Omit<Absence, 'id'>) {
     await db.absences.add(data)
+    await reload()
   }
 
   async function deleteAbsence(id: number) {
     await db.absences.delete(id)
+    await reload()
   }
 
-  return { absences: absences ?? [], addAbsence, deleteAbsence }
+  return { absences, addAbsence, deleteAbsence }
 }

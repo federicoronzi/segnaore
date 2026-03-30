@@ -19,54 +19,35 @@ export function useSettings() {
 
   const reload = useCallback(async () => {
     try {
-      await db.open()
       const found = await db.settings.get('main')
-      if (found) {
-        setSettings(found)
-        setIsLoading(false)
-        return
-      }
+      setSettings(found ?? null)
     } catch {
-      // IndexedDB failed
-    }
-    // Fallback: check localStorage
-    try {
-      const stored = localStorage.getItem('segnaore_settings')
-      if (stored) {
-        const parsed = JSON.parse(stored) as Settings
-        setSettings(parsed)
-        // Try to migrate to IndexedDB
-        try {
-          await db.open()
-          await db.settings.put(parsed)
-        } catch { /* ignore */ }
-      } else {
+      // Fallback: check old localStorage key from Setup
+      try {
+        const stored = localStorage.getItem('segnaore_settings')
+        if (stored) {
+          const parsed = JSON.parse(stored) as Settings
+          setSettings(parsed)
+          // Migrate to new storage
+          try { await db.settings.put(parsed) } catch { /* ignore */ }
+        } else {
+          setSettings(null)
+        }
+      } catch {
         setSettings(null)
       }
-    } catch {
-      setSettings(null)
     }
     setIsLoading(false)
   }, [])
 
-  useEffect(() => {
-    reload()
-  }, [reload])
+  useEffect(() => { reload() }, [reload])
 
   async function saveSettings(updates: Partial<Settings>) {
-    const current = (await db.settings.get('main').catch(() => null)) ?? DEFAULT_SETTINGS
+    const current = (await db.settings.get('main').catch(() => undefined)) ?? DEFAULT_SETTINGS
     const updated = { ...current, ...updates, id: 'main' } as Settings
-    try {
-      await db.settings.put(updated)
-    } catch {
-      localStorage.setItem('segnaore_settings', JSON.stringify(updated))
-    }
+    await db.settings.put(updated)
     setSettings(updated)
   }
 
-  return {
-    settings: settings ?? DEFAULT_SETTINGS,
-    isLoading,
-    saveSettings,
-  }
+  return { settings: settings ?? DEFAULT_SETTINGS, isLoading, saveSettings, reload }
 }

@@ -72,19 +72,7 @@ export default function Settings() {
       const text = await file.text()
       const data = JSON.parse(text)
 
-      await db.transaction('rw', [db.settings, db.workEntries, db.onCallWeeks, db.emergencies, db.absences], async () => {
-        await db.settings.clear()
-        await db.workEntries.clear()
-        await db.onCallWeeks.clear()
-        await db.emergencies.clear()
-        await db.absences.clear()
-
-        if (data.settings) await db.settings.bulkAdd(data.settings)
-        if (data.workEntries) await db.workEntries.bulkAdd(data.workEntries)
-        if (data.onCallWeeks) await db.onCallWeeks.bulkAdd(data.onCallWeeks)
-        if (data.emergencies) await db.emergencies.bulkAdd(data.emergencies)
-        if (data.absences) await db.absences.bulkAdd(data.absences)
-      })
+      await db.importAll(data)
 
       window.location.reload()
     }

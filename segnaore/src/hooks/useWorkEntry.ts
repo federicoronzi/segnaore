@@ -1,10 +1,17 @@
-import { useLiveQuery } from 'dexie-react-hooks'
+import { useState, useEffect, useCallback } from 'react'
 import { db } from '../db'
 import type { WorkEntry } from '../types'
 import { calcWorkedMinutes, calcNightMinutes } from '../utils/time'
 
 export function useWorkEntry(date: string) {
-  const entry = useLiveQuery(() => db.workEntries.where('date').equals(date).first(), [date])
+  const [entry, setEntry] = useState<WorkEntry | null | undefined>(undefined)
+
+  const reload = useCallback(async () => {
+    const found = await db.workEntries.findByDate(date)
+    setEntry(found ?? null)
+  }, [date])
+
+  useEffect(() => { reload() }, [reload])
 
   async function saveEntry(data: Omit<WorkEntry, 'id' | 'workedMinutes' | 'nightMinutes'>) {
     const workedMinutes = calcWorkedMinutes(data.startTime, data.endTime, data.breakMinutes)
@@ -12,32 +19,27 @@ export function useWorkEntry(date: string) {
       data.nightStartTime && data.nightEndTime
         ? calcNightMinutes(data.nightStartTime, data.nightEndTime)
         : undefined
-
-    const existing = await db.workEntries.where('date').equals(data.date).first()
-    if (existing) {
-      await db.workEntries.update(existing.id!, { ...data, workedMinutes, nightMinutes })
-    } else {
-      await db.workEntries.add({ ...data, workedMinutes, nightMinutes })
-    }
+    await db.workEntries.save({ ...data, workedMinutes, nightMinutes })
+    await reload()
   }
 
   async function deleteEntry(date: string) {
-    const existing = await db.workEntries.where('date').equals(date).first()
-    if (existing) {
-      await db.workEntries.delete(existing.id!)
-    }
+    await db.workEntries.deleteByDate(date)
+    await reload()
   }
 
   return { entry: entry ?? null, isLoading: entry === undefined, saveEntry, deleteEntry }
 }
 
 export function useWorkEntries(startDate: string, endDate: string) {
-  const entries = useLiveQuery(
-    () => db.workEntries.where('date').between(startDate, endDate, true, true).toArray(),
-    [startDate, endDate],
-  )
+  const [entries, setEntries] = useState<WorkEntry[]>([])
+
+  useEffect(() => {
+    db.workEntries.getByDateRange(startDate, endDate).then(setEntries)
+  }, [startDate, endDate])
+
   return {
-    entries: entries ?? [],
-    entriesMap: new Map((entries ?? []).map(e => [e.date, e])),
+    entries,
+    entriesMap: new Map(entries.map(e => [e.date, e])),
   }
 }
