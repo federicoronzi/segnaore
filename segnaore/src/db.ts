@@ -37,17 +37,48 @@ async function canUseIndexedDB(): Promise<boolean> {
   return _canUseIDB
 }
 
-// === localStorage helpers ===
+// === localStorage / in-memory helpers ===
+let _canUseLS: boolean | null = null
+const memoryStore: Record<string, unknown[]> = {}
+const memorySeqs: Record<string, number> = {}
+let _storageWarningShown = false
+
+function canUseLocalStorage(): boolean {
+  if (_canUseLS !== null) return _canUseLS
+  try {
+    localStorage.setItem('so_test', '1')
+    localStorage.removeItem('so_test')
+    _canUseLS = true
+  } catch {
+    _canUseLS = false
+    if (!_storageWarningShown) {
+      _storageWarningShown = true
+      setTimeout(() => alert(
+        'Il browser blocca il salvataggio dati.\n\n' +
+        'Vai in Chrome > Impostazioni > Privacy > Cookie e abilita i cookie.\n\n' +
+        'Senza questa impostazione i dati non verranno salvati.'
+      ), 500)
+    }
+  }
+  return _canUseLS
+}
+
 function lsRead<T>(key: string): T[] {
+  if (!canUseLocalStorage()) return (memoryStore[key] as T[]) ?? []
   try { return JSON.parse(localStorage.getItem(`so_${key}`) || '[]') }
   catch { return [] }
 }
 
 function lsWrite<T>(key: string, items: T[]) {
+  if (!canUseLocalStorage()) { memoryStore[key] = items; return }
   localStorage.setItem(`so_${key}`, JSON.stringify(items))
 }
 
 function lsNextId(key: string): number {
+  if (!canUseLocalStorage()) {
+    memorySeqs[key] = (memorySeqs[key] ?? 0) + 1
+    return memorySeqs[key]
+  }
   const n = parseInt(localStorage.getItem(`so_${key}_seq`) || '0') + 1
   localStorage.setItem(`so_${key}_seq`, String(n))
   return n

@@ -34,13 +34,7 @@ export default function Setup() {
       workDays,
       setupComplete: true,
     }
-    try {
-      await db.settings.put(data)
-    } catch (e) {
-      setSaving(false)
-      alert('Errore: ' + (e instanceof Error ? e.message : String(e)))
-      return
-    }
+    await db.settings.put(data)
     window.location.href = window.location.pathname + window.location.search + '#/'
     window.location.reload()
   }
