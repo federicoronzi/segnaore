@@ -58,8 +58,8 @@ export default function Report() {
   function buildSummaryBoxes(): string {
     const boxes: string[] = []
     boxes.push(`<div style="flex:1;min-width:140px;padding:14px;border-radius:12px;text-align:center;background:#eff6ff;">
-      <div style="font-size:22px;font-weight:700;color:#2563eb;">${formatMinutes(summary.totalWorkedMinutes)}</div>
-      <div style="font-size:12px;color:#9ca3af;">ore lavorate</div></div>`)
+      <div style="font-size:22px;font-weight:700;color:#2563eb;">${formatMinutes(summary.totalWorkedMinutes - summary.overtimeMinutes)}</div>
+      <div style="font-size:12px;color:#9ca3af;">ore ordinarie</div></div>`)
     boxes.push(`<div style="flex:1;min-width:140px;padding:14px;border-radius:12px;text-align:center;background:#f0fdf4;">
       <div style="font-size:22px;font-weight:700;color:#16a34a;">${summary.overtimeMinutes > 0 ? '+' : ''}${formatMinutes(summary.overtimeMinutes)}</div>
       <div style="font-size:12px;color:#9ca3af;">straordinario</div></div>`)
@@ -121,12 +121,13 @@ export default function Report() {
           const weekStart = formatDateIT(week[0])
           const weekEnd = formatDateIT(week[week.length - 1])
           const overtime = Math.max(0, weekWorked - weekExpected)
+          const regularHours = weekWorked - overtime
           const overtimeStr = overtime > 0 ? `<span style="color:#16a34a;">+${formatMinutes(overtime)}</span>` : ''
 
           tableContent += `<tr style="border-top:1px solid #e5e7eb;">
             <td style="text-align:left;padding:10px 12px;font-weight:600;text-transform:capitalize;">${weekStart} — ${weekEnd}</td>
             <td style="text-align:center;padding:10px 8px;">${weekDaysWorked}gg</td>
-            <td style="text-align:center;padding:10px 8px;font-weight:600;color:#2563eb;">${formatMinutes(weekWorked)}</td>
+            <td style="text-align:center;padding:10px 8px;font-weight:600;color:#2563eb;">${formatMinutes(regularHours)}</td>
             <td style="text-align:right;padding:10px 12px;">${overtimeStr}</td>
           </tr>`
         }
@@ -170,12 +171,13 @@ export default function Report() {
         const monthDate = new Date(monthKey + '-01')
         const monthLabel = format(monthDate, 'MMMM yyyy', { locale: it })
         const overtime = Math.max(0, data.worked - data.expected)
+        const regularHours = data.worked - overtime
         const overtimeStr = overtime > 0 ? `<span style="color:#16a34a;">+${formatMinutes(overtime)}</span>` : ''
 
         tableContent += `<tr style="border-top:1px solid #e5e7eb;">
           <td style="text-align:left;padding:10px 12px;font-weight:600;text-transform:capitalize;">${monthLabel}</td>
           <td style="text-align:center;padding:10px 8px;">${data.daysWorked}gg</td>
-          <td style="text-align:center;padding:10px 8px;font-weight:600;color:#2563eb;">${formatMinutes(data.worked)}</td>
+          <td style="text-align:center;padding:10px 8px;font-weight:600;color:#2563eb;">${formatMinutes(regularHours)}</td>
           <td style="text-align:right;padding:10px 12px;">${overtimeStr}</td>
         </tr>`
       }
@@ -220,21 +222,27 @@ export default function Report() {
         return `<tr style="${bgStyle}">
           <td style="text-align:left;padding:8px 12px;font-weight:600;text-transform:capitalize;">${dayLabel}</td>
           <td colspan="3" style="text-align:center;color:#a855f7;font-size:13px;">${absLabel}</td>
+          <td style="text-align:center;">—</td>
           <td style="text-align:right;padding:8px 12px;">—</td>
         </tr>`
       }
       if (entry) {
+        const expected = getExpectedMinutes(day, settings)
+        const regular = expected > 0 ? Math.min(entry.workedMinutes, expected) : 0
+        const ot = entry.workedMinutes - regular
         return `<tr style="${bgStyle}">
           <td style="text-align:left;padding:8px 12px;font-weight:600;text-transform:capitalize;">${dayLabel}</td>
           <td style="text-align:center;padding:8px;">${entry.startTime}</td>
           <td style="text-align:center;padding:8px;">${entry.endTime}</td>
           <td style="text-align:center;padding:8px;">${entry.breakMinutes}m</td>
-          <td style="text-align:right;padding:8px 12px;font-weight:600;color:#2563eb;">${formatMinutes(entry.workedMinutes)}</td>
+          <td style="text-align:center;padding:8px;font-weight:600;color:#2563eb;">${formatMinutes(regular)}</td>
+          <td style="text-align:right;padding:8px 12px;font-weight:600;color:#16a34a;">${ot > 0 ? '+' + formatMinutes(ot) : '—'}</td>
         </tr>`
       }
       return `<tr style="${bgStyle}">
         <td style="text-align:left;padding:8px 12px;font-weight:600;text-transform:capitalize;">${dayLabel}</td>
         <td colspan="3" style="text-align:center;color:#d1d5db;font-size:13px;">—</td>
+        <td style="text-align:center;color:#d1d5db;">—</td>
         <td style="text-align:right;padding:8px 12px;color:#d1d5db;">—</td>
       </tr>`
     }).join('')
@@ -252,7 +260,8 @@ export default function Report() {
         <th style="padding:10px 8px;font-size:13px;">Inizio</th>
         <th style="padding:10px 8px;font-size:13px;">Fine</th>
         <th style="padding:10px 8px;font-size:13px;">Pausa</th>
-        <th style="text-align:right;padding:10px 12px;font-size:13px;">Ore</th>
+        <th style="padding:10px 8px;font-size:13px;">Ore</th>
+        <th style="text-align:right;padding:10px 12px;font-size:13px;">Str.</th>
       </tr>
     </thead>
     <tbody>${rows}</tbody>
@@ -370,7 +379,8 @@ export default function Report() {
                 <th className="px-2 py-2">Inizio</th>
                 <th className="px-2 py-2">Fine</th>
                 <th className="px-2 py-2">Pausa</th>
-                <th className="text-right px-3 py-2">Ore</th>
+                <th className="px-2 py-2">Ore</th>
+                <th className="text-right px-3 py-2">Str.</th>
               </tr>
             </thead>
             <tbody>
@@ -390,23 +400,35 @@ export default function Report() {
                   >
                     <td className="px-3 py-2 font-semibold capitalize">{formatDateIT(day)}</td>
                     {absence ? (
-                      <td colSpan={3} className="text-center text-xs text-purple-500">
-                        {absence.type === 'ferie' && '🏖️ Ferie'}
-                        {absence.type === 'permesso' && `🕐 Permesso (${absence.hours}h)`}
-                        {absence.type === 'malattia' && '🤒 Malattia'}
-                      </td>
-                    ) : entry ? (
                       <>
-                        <td className="text-center px-2 py-2">{entry.startTime}</td>
-                        <td className="text-center px-2 py-2">{entry.endTime}</td>
-                        <td className="text-center px-2 py-2">{entry.breakMinutes}m</td>
+                        <td colSpan={3} className="text-center text-xs text-purple-500">
+                          {absence.type === 'ferie' && '🏖️ Ferie'}
+                          {absence.type === 'permesso' && `🕐 Permesso (${absence.hours}h)`}
+                          {absence.type === 'malattia' && '🤒 Malattia'}
+                        </td>
+                        <td className="text-center">—</td>
+                        <td className="text-right px-3">—</td>
                       </>
-                    ) : (
-                      <td colSpan={3} className="text-center text-xs text-gray-300">—</td>
+                    ) : entry ? (() => {
+                      const expected = getExpectedMinutes(day, settings)
+                      const regular = expected > 0 ? Math.min(entry.workedMinutes, expected) : 0
+                      const ot = entry.workedMinutes - regular
+                      return (
+                        <>
+                          <td className="text-center px-2 py-2">{entry.startTime}</td>
+                          <td className="text-center px-2 py-2">{entry.endTime}</td>
+                          <td className="text-center px-2 py-2">{entry.breakMinutes}m</td>
+                          <td className="text-center px-2 py-2 font-semibold text-blue-600">{formatMinutes(regular)}</td>
+                          <td className="text-right px-3 py-2 font-semibold text-green-600">{ot > 0 ? `+${formatMinutes(ot)}` : '—'}</td>
+                        </>
+                      )
+                    })() : (
+                      <>
+                        <td colSpan={3} className="text-center text-xs text-gray-300">—</td>
+                        <td className="text-center text-gray-300">—</td>
+                        <td className="text-right px-3 text-gray-300">—</td>
+                      </>
                     )}
-                    <td className="text-right px-3 py-2 font-semibold text-blue-600">
-                      {entry ? formatMinutes(entry.workedMinutes) : '—'}
-                    </td>
                   </tr>
                 )
               })}
@@ -416,8 +438,8 @@ export default function Report() {
 
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div className="bg-blue-50 rounded-xl p-3 text-center">
-            <div className="text-2xl font-bold text-blue-600">{formatMinutes(summary.totalWorkedMinutes)}</div>
-            <div className="text-xs text-gray-400">ore lavorate</div>
+            <div className="text-2xl font-bold text-blue-600">{formatMinutes(summary.totalWorkedMinutes - summary.overtimeMinutes)}</div>
+            <div className="text-xs text-gray-400">ore ordinarie</div>
           </div>
           <div className="bg-green-50 rounded-xl p-3 text-center">
             <div className="text-2xl font-bold text-green-600">
