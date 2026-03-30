@@ -1,12 +1,10 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useSettings } from '../hooks/useSettings'
 
 const DAY_LABELS = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab']
 
 export default function Setup() {
   const { saveSettings } = useSettings()
-  const navigate = useNavigate()
   const [step, setStep] = useState(1)
   const [userName, setUserName] = useState('')
   const [companyName, setCompanyName] = useState('')
@@ -32,7 +30,7 @@ export default function Setup() {
       workDays,
       setupComplete: true,
     })
-    navigate('/')
+    window.location.reload()
   }
 
   return (
