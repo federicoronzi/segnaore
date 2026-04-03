@@ -34,12 +34,16 @@ export function useWorkEntry(date: string) {
 export function useWorkEntries(startDate: string, endDate: string) {
   const [entries, setEntries] = useState<WorkEntry[]>([])
 
-  useEffect(() => {
-    db.workEntries.getByDateRange(startDate, endDate).then(setEntries)
+  const reload = useCallback(async () => {
+    const data = await db.workEntries.getByDateRange(startDate, endDate)
+    setEntries(data)
   }, [startDate, endDate])
+
+  useEffect(() => { reload() }, [reload])
 
   return {
     entries,
     entriesMap: new Map(entries.map(e => [e.date, e])),
+    reload,
   }
 }

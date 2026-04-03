@@ -33,7 +33,7 @@ export default function Calendar() {
   const startStr = format(calStart, 'yyyy-MM-dd')
   const endStr = format(calEnd, 'yyyy-MM-dd')
 
-  const { entriesMap } = useWorkEntries(startStr, endStr)
+  const { entriesMap, reload: reloadEntries } = useWorkEntries(startStr, endStr)
   const { absences, deleteAbsence } = useAbsences(startStr, endStr)
   const absenceMap = new Map(absences.map(a => [a.date, a]))
 
@@ -71,6 +71,7 @@ export default function Calendar() {
       workedMinutes: workedMins,
       services,
     })
+    await reloadEntries()
     setEditing(false)
   }
 
@@ -78,6 +79,7 @@ export default function Calendar() {
     if (!selectedDate) return
     if (window.confirm('Sei sicuro di voler cancellare questa giornata?')) {
       await db.workEntries.deleteByDate(selectedDate)
+      await reloadEntries()
       setSelectedDate(null)
     }
   }
