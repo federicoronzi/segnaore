@@ -74,15 +74,10 @@ export function calcPeriodSummary(
       totalExpectedMinutes += expected
 
       if (expected === 0) {
-        // Non-work day (weekend etc): all hours are overtime
         overtimeMinutes += entry.workedMinutes
       } else if (entry.workedMinutes > expected) {
-        // Work day: hours beyond expected are overtime
         overtimeMinutes += entry.workedMinutes - expected
       }
-
-      // Night hours are always overtime
-      overtimeMinutes += entry.nightMinutes ?? 0
     }
   }
 
