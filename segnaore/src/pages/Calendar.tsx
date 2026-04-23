@@ -7,12 +7,11 @@ import { it } from 'date-fns/locale'
 import { useWorkEntries } from '../hooks/useWorkEntry'
 import { useAbsences } from '../hooks/useAbsences'
 import { useSettings } from '../hooks/useSettings'
-import { formatMinutes } from '../utils/time'
+import { formatMinutes, calcWorkedMinutes, calcNightMinutes } from '../utils/time'
 import { db } from '../db'
 import DaySummaryCard from '../components/DaySummaryCard'
 import TimeInput from '../components/TimeInput'
 import type { Service, WorkEntry } from '../types'
-import { calcWorkedMinutes } from '../utils/time'
 
 export default function Calendar() {
   const [currentMonth, setCurrentMonth] = useState(new Date())
@@ -24,6 +23,9 @@ export default function Calendar() {
   const [endTime, setEndTime] = useState('17:00')
   const [breakMinutes, setBreakMinutes] = useState<number | null>(null)
   const [services, setServices] = useState<Service[]>([])
+  const [editingNight, setEditingNight] = useState(false)
+  const [nightStart, setNightStart] = useState('22:00')
+  const [nightEnd, setNightEnd] = useState('06:00')
 
   const monthStart = startOfMonth(currentMonth)
   const monthEnd = endOfMonth(currentMonth)
@@ -49,6 +51,7 @@ export default function Calendar() {
     setSelectedDate(dateStr)
     setEditing(false)
     setEditStep(1)
+    setEditingNight(false)
   }
 
   function startEdit(entry?: WorkEntry) {
@@ -58,6 +61,7 @@ export default function Calendar() {
     setServices(entry?.services ?? [])
     setEditing(true)
     setEditStep(1)
+    setEditingNight(false)
   }
 
   async function saveEdit() {
@@ -82,6 +86,25 @@ export default function Calendar() {
       await reloadEntries()
       setSelectedDate(null)
     }
+  }
+
+  async function saveNight() {
+    if (!selectedDate) return
+    const entry = entriesMap.get(selectedDate)
+    if (!entry) return
+    const nightMinutes = calcNightMinutes(nightStart, nightEnd)
+    await db.workEntries.save({ ...entry, nightStartTime: nightStart, nightEndTime: nightEnd, nightMinutes })
+    await reloadEntries()
+    setEditingNight(false)
+  }
+
+  async function clearNight() {
+    if (!selectedDate) return
+    const entry = entriesMap.get(selectedDate)
+    if (!entry) return
+    await db.workEntries.save({ ...entry, nightStartTime: undefined, nightEndTime: undefined, nightMinutes: undefined })
+    await reloadEntries()
+    setEditingNight(false)
   }
 
   // Day detail view
@@ -167,6 +190,43 @@ export default function Calendar() {
         {entry ? (
           <>
             <DaySummaryCard entry={entry} onEdit={() => startEdit(entry)} />
+
+            {editingNight ? (
+              <div className="mt-4 bg-indigo-50 rounded-xl p-4">
+                <h3 className="text-center font-bold mb-4 text-indigo-700">🌙 Lavoro notturno</h3>
+                <div className="mb-3">
+                  <p className="text-xs text-gray-500 mb-2 text-center">Inizio</p>
+                  <TimeInput value={nightStart} onChange={setNightStart} color="indigo" />
+                </div>
+                <div className="mb-4">
+                  <p className="text-xs text-gray-500 mb-2 text-center">Fine</p>
+                  <TimeInput value={nightEnd} onChange={setNightEnd} color="indigo" />
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={() => setEditingNight(false)} className="flex-1 py-3 bg-gray-100 text-gray-500 rounded-xl font-semibold">Annulla</button>
+                  <button onClick={saveNight} className="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-semibold">Salva ✓</button>
+                </div>
+                {entry.nightMinutes != null && entry.nightMinutes > 0 && (
+                  <div className="text-center mt-3">
+                    <button onClick={clearNight} className="text-red-400 text-xs hover:underline">Rimuovi ore notturne</button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-center mt-4">
+                <button
+                  onClick={() => {
+                    if (entry.nightStartTime) setNightStart(entry.nightStartTime)
+                    if (entry.nightEndTime) setNightEnd(entry.nightEndTime)
+                    setEditingNight(true)
+                  }}
+                  className="text-indigo-400 text-sm hover:underline"
+                >
+                  {entry.nightMinutes ? '🌙 Modifica ore notturne' : 'Hai lavorato di notte?'}
+                </button>
+              </div>
+            )}
+
             <div className="text-center mt-6">
               <button onClick={deleteDay} className="text-red-400 text-xs hover:underline">Cancella giornata</button>
             </div>

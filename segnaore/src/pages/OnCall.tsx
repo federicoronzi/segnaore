@@ -1,15 +1,17 @@
 import { useState } from 'react'
-import { format, startOfWeek } from 'date-fns'
+import { format, startOfWeek, addWeeks } from 'date-fns'
 import { it } from 'date-fns/locale'
 import { useOnCallWeek, useEmergencies } from '../hooks/useEmergencies'
 import TimeInput from '../components/TimeInput'
 import { formatMinutes } from '../utils/time'
 
 export default function OnCall() {
-  const mondayStr = format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd')
-  const weekLabel = format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'd MMM', { locale: it })
+  const [refDate, setRefDate] = useState(new Date())
+  const weekStart = startOfWeek(refDate, { weekStartsOn: 1 })
+  const mondayStr = format(weekStart, 'yyyy-MM-dd')
+  const weekLabel = format(weekStart, 'd MMM', { locale: it })
   const weekEndLabel = format(
-    new Date(new Date(mondayStr).getTime() + 6 * 86400000),
+    new Date(weekStart.getTime() + 6 * 86400000),
     'd MMM yyyy',
     { locale: it },
   )
@@ -50,8 +52,8 @@ export default function OnCall() {
 
   return (
     <div className="py-4">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-bold">🚨 Settimana di reperibilità</h2>
+      <div className="flex items-center justify-between mb-2">
+        <h2 className="text-lg font-bold">🚨 Reperibilità</h2>
         <button
           onClick={handleToggle}
           className={`w-12 h-7 rounded-full relative transition-colors ${isActive ? 'bg-green-500' : 'bg-gray-300'}`}
@@ -62,7 +64,11 @@ export default function OnCall() {
         </button>
       </div>
 
-      <p className="text-sm text-gray-400 mb-4">{weekLabel} — {weekEndLabel}</p>
+      <div className="flex items-center justify-between mb-4">
+        <button onClick={() => setRefDate(d => addWeeks(d, -1))} className="text-xl text-blue-600 px-2">←</button>
+        <span className="text-sm text-gray-500">{weekLabel} — {weekEndLabel}</span>
+        <button onClick={() => setRefDate(d => addWeeks(d, 1))} className="text-xl text-blue-600 px-2">→</button>
+      </div>
 
       {isActive && (
         <>
