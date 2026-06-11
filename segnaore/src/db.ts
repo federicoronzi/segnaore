@@ -25,14 +25,16 @@ const dexieDb = new SegnaOreDB()
 
 // === IndexedDB availability detection ===
 let _canUseIDB: boolean | null = null
+let _idbError = ''
 
 async function canUseIndexedDB(): Promise<boolean> {
   if (_canUseIDB !== null) return _canUseIDB
   try {
     await dexieDb.open()
     _canUseIDB = true
-  } catch {
+  } catch (e) {
     _canUseIDB = false
+    _idbError = e instanceof Error ? `${e.name}: ${e.message}` : String(e)
   }
   return _canUseIDB
 }
@@ -49,14 +51,18 @@ function canUseLocalStorage(): boolean {
     localStorage.setItem('so_test', '1')
     localStorage.removeItem('so_test')
     _canUseLS = true
-  } catch {
+  } catch (e) {
     _canUseLS = false
     if (!_storageWarningShown) {
       _storageWarningShown = true
+      const lsError = e instanceof Error ? `${e.name}: ${e.message}` : String(e)
       setTimeout(() => alert(
         'Il browser blocca il salvataggio dati.\n\n' +
-        'Vai in Chrome > Impostazioni > Privacy > Cookie e abilita i cookie.\n\n' +
-        'Senza questa impostazione i dati non verranno salvati.'
+        'DIAGNOSTICA (manda screenshot):\n' +
+        `IndexedDB → ${_idbError || 'n/d'}\n` +
+        `localStorage → ${lsError}\n` +
+        `UA → ${navigator.userAgent}\n\n` +
+        'Senza salvataggio i dati non verranno conservati.'
       ), 500)
     }
   }
